@@ -18,10 +18,10 @@
   },
   "db": {
     "type": "postgres",
-    "host": "10.8.1.15",
+    "host": "localhost",
     "port": 5432,
     "username": "postgres",
     "password": "postgres",
-    "database": "pycsw-3d"
+    "database": "catalog"
   }
 }
