@@ -42,7 +42,7 @@ db:
   port: 5432
   username: postgres
   password: Libot4allnonprod
-  database: 3d-catalog-manager-dev
+  database: 3d-catalog-manager-int
   requirePassword: true
   sslEnable: false
   useExternal: true
