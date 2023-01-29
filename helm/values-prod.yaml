@@ -7,7 +7,7 @@ image:
   repository: 3d-ingestion-catalog
   tag: v4.1.0
 enabled: true
-environment: development
+environment: production
 initialDelaySeconds: 60
 nodePort: 30030
 replicaCount: 1
@@ -42,11 +42,11 @@ db:
   port: 5432
   username: postgres
   password: Libot4allnonprod
-  database: 3d-catalog-manager-dev
+  database: 3d-catalog-manager-int
   requirePassword: true
   sslEnable: false
   useExternal: true
-  secretName: catalog-3d-dev-secret
+  secretName: catalog-3d-prod-secret
   certFileName: certFile
   keyFileName: keyFile
   caFileName: caFile

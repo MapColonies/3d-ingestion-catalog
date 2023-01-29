@@ -5,9 +5,9 @@ global:
   environment: {}
 image:
   repository: 3d-ingestion-catalog
-  tag: v4.0.0
+  tag: v4.1.0
 enabled: true
-environment: development
+environment: production
 initialDelaySeconds: 60
 nodePort: 30030
 replicaCount: 1
@@ -37,18 +37,19 @@ resources:
     requests:
       cpu: 100m
       memory: 128Mi
-dbConfig:
+db:
   host: 10.0.4.4
   port: 5432
   username: postgres
   password: Libot4allnonprod
   database: 3d-catalog-manager-int
-  sslAuth:
-    enabled: false
-    secretName: catalog-3d-ingestion-catalog-secret
-    certFileName: postgresql.crt
-    keyFileName: postgresql.key
-    caFileName: root.crt
+  requirePassword: true
+  sslEnable: false
+  useExternal: true
+  secretName: catalog-3d-staging-secret
+  certFileName: certFile
+  keyFileName: keyFile
+  caFileName: caFile
 ingress:
   enabled: false
   annotations:
@@ -60,3 +61,18 @@ ingress:
     path: /3d-ingestion-catalog/
 route:
   enabled: true
+ca:
+  enable: false
+  useExternal: true
+  externalSecretName: 'root.ca'
+  secretName: 'root.ca'
+  path: '/usr/local/share/ca-certificates'
+  key: 'ca.crt'
+
+annotations:
+  collectord.io/index: SPLUNK_INDEX
+  collectord.io/logs-output: splunk
+  collectord.io/procstats-output: devnull
+  collectord.io/netstats-output: devnull
+  collectord.io/nettable-output: devnull
+  collectord.io/stats-output: devnull

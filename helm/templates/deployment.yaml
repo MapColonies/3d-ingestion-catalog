@@ -14,6 +14,10 @@ metadata:
     environment: {{ include "3d-ingestion-catalog.environment" . }}
     release: {{ $releaseName }}
     {{- include "3d-ingestion-catalog.labels" . | nindent 4 }}
+{{- with .Values.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -36,13 +40,25 @@ spec:
           image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $tag }}
           {{- end }}
           env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.secretName }}
+                  key: username
+            {{- if .Values.db.requirePassword }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.secretName }}
+                  key: password
+            {{- end }}
             - name: SERVER_PORT
               value: {{ .Values.env.targetPort | quote }}
           envFrom:
             - configMapRef:
                 name: {{ $releaseName }}-{{ $chartName }}-configmap
-            - secretRef:
-                name: {{ $releaseName }}-{{ $chartName }}-secret
+            # - secretRef:
+            #     name: {{ $releaseName }}-{{ $chartName }}-secret
 
           ports:
             - name: http
@@ -57,16 +73,16 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
-          {{- if .Values.dbConfig.sslAuth.enabled }}
+          {{- if .Values.db.sslEnable }}
           volumeMounts:
             - name: cert-conf
               mountPath: /tmp/certs
               readOnly: true
           {{- end }}
-      {{- if .Values.dbConfig.sslAuth.enabled }}
+      {{- if .Values.db.sslEnable }}
       volumes:
         - name: cert-conf
           secret:
-            secretName: {{ .Values.dbConfig.sslAuth.secretName }}
+            secretName: {{ .Values.db.secretName }}
       {{- end }}
 {{- end -}}
