@@ -73,16 +73,35 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
-          {{- if .Values.db.sslEnable }}
           volumeMounts:
+            {{- if .Values.db.sslEnable }}
             - name: cert-conf
               mountPath: /tmp/certs
               readOnly: true
-          {{- end }}
-      {{- if .Values.db.sslEnable }}
+            {{- end }}
+            - name: logs
+              mountPath: /usr/src/app/logs
+          command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
+
+        - name: filebeat
+          image: docker.elastic.co/beats/filebeat:7.12.1
+          args: [ "-c", "/etc/filebeat.yml", "-e" ]
+          volumeMounts:
+            - name: logs
+              mountPath: /usr/src/app/logs
+            - name: config
+              mountPath: /etc/filebeat.yml
+              subPath: filebeat.yml
       volumes:
+      {{- if .Values.db.sslEnable }}
         - name: cert-conf
           secret:
             secretName: {{ .Values.db.secretName }}
       {{- end }}
+        - name: logs
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: filebeat-config
+      terminationGracePeriodSeconds: 30
 {{- end -}}
