@@ -73,6 +73,7 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
+          {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
           volumeMounts:
             {{- if .Values.db.sslEnable }}
             - name: cert-conf
@@ -83,8 +84,9 @@ spec:
             - name: logs
               mountPath: {{ .Values.logsFilebeat.mountPath }}
             {{- end }}
-          command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
+          {{- end }}
         {{- if .Values.logsFilebeat.enabled }}
+          command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
         - name: filebeat
           image: {{ .Values.logsFilebeat.filebeatImage }}
           args: [ "-c", "/etc/filebeat.yml", "-e" ]
