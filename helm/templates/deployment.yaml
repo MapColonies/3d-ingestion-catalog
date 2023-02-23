@@ -97,12 +97,13 @@ spec:
               mountPath: /etc/filebeat.yml
               subPath: filebeat.yml
         {{- end }}
+      {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
       volumes:
-      {{- if .Values.db.sslEnable }}
+        {{- if .Values.db.sslEnable }}
         - name: cert-conf
           secret:
             secretName: {{ .Values.db.secretName }}
-      {{- end }}
+        {{- end }}
         {{- if .Values.logsFilebeat.enabled }}
         - name: logs
           emptyDir: {}
@@ -110,5 +111,6 @@ spec:
           configMap:
             name: filebeat-config
         {{- end }}
+      {{- end }}
       terminationGracePeriodSeconds: 30
 {{- end -}}
