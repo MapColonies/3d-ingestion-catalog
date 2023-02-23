@@ -81,16 +81,16 @@ spec:
             {{- end }}
             {{- if .Values.logsFilebeat.enabled }}
             - name: logs
-              mountPath: /usr/src/app/logs
+              mountPath: {{ .Values.logsFilebeat.mountPath }}
             {{- end }}
           command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
         {{- if .Values.logsFilebeat.enabled }}
         - name: filebeat
-          image: docker.elastic.co/beats/filebeat:7.12.1
+          image: {{ .Values.logsFilebeat.filebeatImage }}
           args: [ "-c", "/etc/filebeat.yml", "-e" ]
           volumeMounts:
             - name: logs
-              mountPath: /usr/src/app/logs
+              mountPath: {{ .Values.logsFilebeat.mountPath }}
             - name: config
               mountPath: /etc/filebeat.yml
               subPath: filebeat.yml
