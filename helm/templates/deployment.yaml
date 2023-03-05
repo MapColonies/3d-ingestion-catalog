@@ -73,16 +73,44 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
-          {{- if .Values.db.sslEnable }}
+          {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
           volumeMounts:
+            {{- if .Values.db.sslEnable }}
             - name: cert-conf
               mountPath: /tmp/certs
               readOnly: true
+            {{- end }}
+            {{- if .Values.logsFilebeat.enabled }}
+            - name: logs
+              mountPath: {{ .Values.logsFilebeat.mountPath }}
+            {{- end }}
           {{- end }}
-      {{- if .Values.db.sslEnable }}
+        {{- if .Values.logsFilebeat.enabled }}
+          command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
+        - name: filebeat
+          image: {{ .Values.logsFilebeat.filebeatImage }}
+          args: [ "-c", "/etc/filebeat.yml", "-e" ]
+          volumeMounts:
+            - name: logs
+              mountPath: {{ .Values.logsFilebeat.mountPath }}
+            - name: config
+              mountPath: /etc/filebeat.yml
+              subPath: filebeat.yml
+        {{- end }}
+      {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
       volumes:
+        {{- if .Values.db.sslEnable }}
         - name: cert-conf
           secret:
             secretName: {{ .Values.db.secretName }}
+        {{- end }}
+        {{- if .Values.logsFilebeat.enabled }}
+        - name: logs
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: filebeat-config
+        {{- end }}
       {{- end }}
+      terminationGracePeriodSeconds: 30
 {{- end -}}
