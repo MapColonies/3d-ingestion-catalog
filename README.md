@@ -1,6 +1,7 @@
 # 3d-ingestion-catalog
-
 A RESTful API for querying 3d metadata
+
+The Catalog service is responsible for managing and providing metadata for models within the system. It serves as a central repository of information about various models, allowing users to easily discover and access the metadata associated with each model.
 
 ----------------------------------------
 
