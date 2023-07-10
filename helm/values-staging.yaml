@@ -7,7 +7,7 @@ image:
   repository: 3d-ingestion-catalog
   tag: v4.1.1
 enabled: true
-environment: production
+environment: staging
 initialDelaySeconds: 60
 nodePort: 30030
 replicaCount: 1
@@ -46,7 +46,7 @@ db:
   requirePassword: true
   sslEnable: false
   useExternal: true
-  secretName: catalog-3d-staging-secret
+  secretName: catalog-3d-prod-secret
   certFileName: certFile
   keyFileName: keyFile
   caFileName: caFile
