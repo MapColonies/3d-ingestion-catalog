@@ -1,5 +1,5 @@
 import { Link } from '@map-colonies/mc-model-types';
-import { deserializeLinks, formatStrings, linksToString } from '../../../../src/common/utils/format';
+import { deserializeLinks, extractModelIdFromLink, formatStrings, linksToString } from '../../../../src/common/utils/format';
 
 describe('format tests', () => {
   describe('deserializeLinks tests', () => {
@@ -61,6 +61,17 @@ describe('format tests', () => {
       const payload: Record<string, string> = { name: `na'me`, name2: `name'2` };
       const expectedResult: Record<string, string> = { name: 'na`me', name2: 'name`2' };
       expect(formatStrings(payload)).toStrictEqual(expectedResult);
+    });
+  });
+
+  describe('extractModelIdFromLink tests', () => {
+    it("Should extract modelId from links field", () => {
+      const modelId = 'id';
+      const links: string = linksToString([{ 
+        protocol: 'protocol',
+        url: `http://link-to-catalog/${modelId}/path/to/tileset.json`
+      }]);
+      expect(extractModelIdFromLink(links)).toStrictEqual(modelId);
     });
   });
 });

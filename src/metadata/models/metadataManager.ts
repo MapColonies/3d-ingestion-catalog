@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { IUpdateMetadata, IUpdateStatus } from '../../common/dataModels/records';
+import { extractModelIdFromLink } from '../../common/utils/format';
 import { EntityNotFoundError, IdAlreadyExistsError } from './errors';
 import { Metadata } from './generated';
 
@@ -46,10 +47,11 @@ export class MetadataManager {
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }
       const newMetadata: Metadata = await this.repository.save(payload);
-      this.logger.info({ msg: 'Saved new record', modelId: payload.id });
+      const modelId = extractModelIdFromLink(newMetadata.links);
+      this.logger.info({ msg: 'Saved new record', modelId });
       return newMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'Saving new record failed' });
+      this.logger.error({ msg: 'Saving new record failed', error });
       throw error;
     }
   }
