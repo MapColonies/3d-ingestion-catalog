@@ -65,12 +65,14 @@ describe('format tests', () => {
   });
 
   describe('extractModelIdFromLink tests', () => {
-    it("Should extract modelId from links field", () => {
+    it('Should extract modelId from links field', () => {
       const modelId = 'id';
-      const links: string = linksToString([{ 
-        protocol: 'protocol',
-        url: `http://link-to-catalog/${modelId}/path/to/tileset.json`
-      }]);
+      const links: string = linksToString([
+        {
+          protocol: 'protocol',
+          url: `http://link-to-catalog/${modelId}/path/to/tileset.json`,
+        },
+      ]);
       expect(extractModelIdFromLink(links)).toStrictEqual(modelId);
     });
   });

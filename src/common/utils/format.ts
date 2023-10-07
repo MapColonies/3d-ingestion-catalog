@@ -31,4 +31,4 @@ export const formatStrings = <T extends IUpdatePayload | IPayload>(payload: T): 
 export const extractModelIdFromLink = (links: string): string => {
   const modelId: string = links.split('/')[3];
   return modelId;
-}
+};
