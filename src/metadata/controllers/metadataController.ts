@@ -35,7 +35,7 @@ export class MetadataController {
       }
       return res.status(httpStatus.OK).json(metadataList);
     } catch (error) {
-      this.logger.error({ msg: 'Couldnt get all records', error });
+      this.logger.error({ msg: `couldn't get all records`, error });
       return next(error);
     }
   };
@@ -75,7 +75,7 @@ export class MetadataController {
     try {
       const { identifier } = req.params;
       const payload: IUpdatePayload = formatStrings<IUpdatePayload>(req.body);
-      const metadata: IUpdateMetadata = this.updatePayloadToMatadata(payload);
+      const metadata: IUpdateMetadata = this.updatePayloadToMetadata(payload);
 
       const updatedPartialMetadata = await this.manager.updatePartialRecord(identifier, metadata);
       return res.status(httpStatus.OK).json(updatedPartialMetadata);
@@ -139,7 +139,7 @@ export class MetadataController {
     return entity;
   }
 
-  private updatePayloadToMatadata(payload: IUpdatePayload): IUpdateMetadata {
+  private updatePayloadToMetadata(payload: IUpdatePayload): IUpdateMetadata {
     const metadata: IUpdateMetadata = {
       ...(payload as IUpdate),
       ...(payload.sensors && { sensors: payload.sensors.join(', ') }),
@@ -180,7 +180,7 @@ export class MetadataController {
     }
   }
   /*
-  Deperacted
+  Deprecated
 
   public put: UpdateRequestHandler = async (req, res, next) => {
     try {

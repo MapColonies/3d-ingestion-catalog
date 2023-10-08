@@ -3,7 +3,6 @@ import { Repository } from 'typeorm';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { IUpdateMetadata, IUpdateStatus } from '../../common/dataModels/records';
-import { extractModelIdFromLink } from '../../common/utils/format';
 import { EntityNotFoundError, IdAlreadyExistsError } from './errors';
 import { Metadata } from './generated';
 
@@ -47,8 +46,7 @@ export class MetadataManager {
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }
       const newMetadata: Metadata = await this.repository.save(payload);
-      const modelId = extractModelIdFromLink(newMetadata.links);
-      this.logger.info({ msg: 'Saved new record', modelId });
+      this.logger.info({ msg: 'Saved new record', modelId: payload.productId });
       return newMetadata;
     } catch (error) {
       this.logger.error({ msg: 'Saving new record failed', error });
@@ -116,7 +114,7 @@ export class MetadataManager {
   }
 
   /*
-  deprecated: updatefull record
+  deprecated: updateFull record
   public async updateRecord(identifier: string, payload: Metadata): Promise<Metadata> {
     this.logger.info(`Update metadata record ${identifier}: ${JSON.stringify(payload)}`);
     const ifExists: Metadata | undefined = await this.repository.findOne(identifier);

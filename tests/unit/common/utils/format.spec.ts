@@ -1,9 +1,9 @@
 import { Link } from '@map-colonies/mc-model-types';
-import { deserializeLinks, extractModelIdFromLink, formatStrings, linksToString } from '../../../../src/common/utils/format';
+import { deserializeLinks, formatStrings, linksToString } from '../../../../src/common/utils/format';
 
 describe('format tests', () => {
   describe('deserializeLinks tests', () => {
-    it("Shound return empty list when recieving an empty string or 'undefined' as parameter", () => {
+    it("Should return empty list when receiving an empty string or 'undefined' as parameter", () => {
       const linksStr = undefined;
       expect(deserializeLinks(linksStr)).toStrictEqual([]);
     });
@@ -23,18 +23,18 @@ describe('format tests', () => {
   });
 
   describe('linksToString tests', () => {
-    it('Should return empty link when recieving an empty array', () => {
+    it('Should return empty link when receiving an empty array', () => {
       const linksStr: Link[] = [];
       expect(linksToString(linksStr)).toBe('');
     });
 
-    it('Should return link as a string when recieving a single link', () => {
+    it('Should return link as a string when receiving a single link', () => {
       const linksStr: Link[] = [{ name: 'testName', description: 'testDescription', protocol: 'testProtocol', url: 'http://testURL.com' }];
       const expectedResult = 'testName,testDescription,testProtocol,http://testURL.com';
       expect(linksToString(linksStr)).toStrictEqual(expectedResult);
     });
 
-    it(`Should return links seperated by '^' when given multiple Links`, () => {
+    it(`Should return links separated by '^' when given multiple Links`, () => {
       const linksStr: Link[] = [
         { name: 'testName1', description: 'testDescription1', protocol: 'testProtocol1', url: 'http://testURL1.com' },
         { name: 'testName2', description: 'testDescription2', protocol: 'testProtocol2', url: 'http://testURL2.com' },
@@ -61,19 +61,6 @@ describe('format tests', () => {
       const payload: Record<string, string> = { name: `na'me`, name2: `name'2` };
       const expectedResult: Record<string, string> = { name: 'na`me', name2: 'name`2' };
       expect(formatStrings(payload)).toStrictEqual(expectedResult);
-    });
-  });
-
-  describe('extractModelIdFromLink tests', () => {
-    it('Should extract modelId from links field', () => {
-      const modelId = 'id';
-      const links: string = linksToString([
-        {
-          protocol: 'protocol',
-          url: `http://link-to-catalog/${modelId}/path/to/tileset.json`,
-        },
-      ]);
-      expect(extractModelIdFromLink(links)).toStrictEqual(modelId);
     });
   });
 });
