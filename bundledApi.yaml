@@ -296,7 +296,7 @@ components:
       additionalProperties: false
     catalog-payload:
       type: object
-      description: 3d tiles metadata payload with links
+      description: 3d tiles ingestion payload with links
       required:
         - productName
         - productType
@@ -405,6 +405,7 @@ components:
           items:
             type: string
           minItems: 1
+          description: Layer sensors list
           example:
             - OTHER
         footprint:
@@ -478,6 +479,8 @@ components:
           type: string
           nullable: true
           description: The keywords of the product
+        id:
+          type: string
         links:
           type: array
           minItems: 1
@@ -490,8 +493,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/catalog-payload'
         - properties:
-            identifier:
-              type: string
             productBoundingBox:
               type: string
               readOnly: true

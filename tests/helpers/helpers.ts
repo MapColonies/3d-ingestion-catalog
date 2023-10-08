@@ -72,6 +72,7 @@ export const createFakePayload = (): IPayload => {
   const sourceDateStart = faker.date.past(years, sourceDateEnd);
   const minResolutionMeter = faker.datatype.number(maxResolutionMeter);
   const record: IPayload = {
+    id: faker.datatype.uuid(),
     productId: undefined,
     type: RecordType.RECORD_3D,
     productName: Math.floor(Math.random() * listOfRandomWords.length).toString() + '',

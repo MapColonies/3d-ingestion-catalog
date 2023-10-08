@@ -3,7 +3,6 @@ import wkt from 'terraformer-wkt-parser';
 import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
-import { v4 as uuidV4 } from 'uuid';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { HttpError, NotFoundError } from '../../common/errors';
@@ -112,19 +111,17 @@ export class MetadataController {
   };
 
   private async metadataToEntity(payload: IPayload): Promise<Metadata> {
-    const id = uuidV4();
-
-    await this.checkValuesValidation(payload, id);
+    await this.checkValuesValidation(payload);
 
     const entity: Metadata = new Metadata();
     Object.assign(entity, payload);
 
-    entity.id = id;
+    entity.id = payload.id;
     if (payload.productId != undefined) {
       entity.productVersion = (await this.manager.findLastVersion(payload.productId)) + 1;
     } else {
       entity.productVersion = 1;
-      entity.productId = id;
+      entity.productId = payload.id;
     }
 
     if (payload.footprint !== undefined) {
@@ -148,10 +145,10 @@ export class MetadataController {
     return metadata;
   }
 
-  private async checkValuesValidation(payload: IPayload, id: string): Promise<void> {
+  private async checkValuesValidation(payload: IPayload): Promise<void> {
     // Validates that generated id doesn't exists. If exists, go fill a lottery card now!
-    if (await this.manager.getRecord(id)) {
-      throw new IdAlreadyExistsError(`Metadata record ${id} already exists!`);
+    if (await this.manager.getRecord(payload.id)) {
+      throw new IdAlreadyExistsError(`Metadata record ${payload.id} already exists!`);
     }
 
     // Validates that productId exists (when is not null)

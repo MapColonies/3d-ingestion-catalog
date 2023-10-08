@@ -46,7 +46,7 @@ export class MetadataManager {
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }
       const newMetadata: Metadata = await this.repository.save(payload);
-      this.logger.info({ msg: 'Saved new record', modelId: payload.productId });
+      this.logger.info({ msg: 'Saved new record', modelId: payload.id });
       return newMetadata;
     } catch (error) {
       this.logger.error({ msg: 'Saving new record failed', error });
