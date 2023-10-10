@@ -298,7 +298,6 @@ components:
       type: object
       description: 3d tiles ingestion payload with links
       required:
-        - id
         - productName
         - productType
         - sourceDateStart
@@ -315,6 +314,7 @@ components:
         - productionSystemVer
         - producerName
         - links
+        - id
       properties:
         type:
           type: string
