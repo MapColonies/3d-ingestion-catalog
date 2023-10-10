@@ -38,7 +38,7 @@ export class MetadataManager {
   }
 
   public async createRecord(payload: Metadata): Promise<Metadata> {
-    this.logger.debug({ msg: 'create new record', modelId: payload.id, metadata: payload });
+    this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(payload.id);
       if (record !== undefined) {
@@ -46,16 +46,16 @@ export class MetadataManager {
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }
       const newMetadata: Metadata = await this.repository.save(payload);
-      this.logger.info({ msg: 'Saved new record', modelId: payload.id });
+      this.logger.info({ msg: 'Saved new record', modelId: payload.id, modelName: payload.productName, payload });
       return newMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, error });
+      this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, modelName: payload.productName, error, payload });
       throw error;
     }
   }
 
   public async updatePartialRecord(identifier: string, payload: IUpdateMetadata): Promise<Metadata> {
-    this.logger.debug({ msg: 'Update partial metadata', modelId: identifier });
+    this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
@@ -64,10 +64,10 @@ export class MetadataManager {
       }
       const metadata: Metadata = { ...record, ...payload };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
-      this.logger.info({ msg: 'Updated record', modelId: identifier });
+      this.logger.info({ msg: 'Updated record', modelId: identifier, payload });
       return updatedMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, error });
+      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, error, payload });
       throw error;
     }
   }
@@ -93,10 +93,10 @@ export class MetadataManager {
       }
       const metadata: Metadata = { ...record, productStatus: payload.productStatus };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
-      this.logger.info({ msg: 'Updated record', modelId: identifier, status: payload.productStatus });
+      this.logger.info({ msg: 'Updated record', modelId: identifier, payload });
       return updatedMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, status: payload.productStatus, error });
+      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, payload, error });
       throw error;
     }
   }
@@ -105,7 +105,7 @@ export class MetadataManager {
     this.logger.debug({ msg: 'Get last product version', modelId: identifier });
     try {
       const metadata: Metadata | undefined = await this.repository.findOne({ where: { productId: identifier }, order: { productVersion: 'DESC' } });
-      this.logger.info({ msg: 'Got latest model version', modelId: identifier });
+      this.logger.info({ msg: 'Got latest model version', modelId: identifier, version: metadata?.productVersion });
       return metadata !== undefined ? metadata.productVersion : 0;
     } catch (error) {
       this.logger.error({ msg: 'Error in retrieving latest model version', modelId: identifier, error });
