@@ -172,6 +172,16 @@ describe('MetadataController', function () {
     });
 
     describe('Bad Path 😡', function () {
+      it('should return 400 status code if id is not exists or null', async function () {
+        const payload = createFakePayload();
+        payload.id = null as unknown as string;
+
+        const response = await requestSender.createRecord(app, payload);
+
+        expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
+        expect(response.text).toContain(`request.body.id should be string`);
+      });
+
       it('should return 400 status code if productId is not exists', async function () {
         const payload = createFakePayload();
         payload.productId = '2';
