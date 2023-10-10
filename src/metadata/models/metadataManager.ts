@@ -38,7 +38,7 @@ export class MetadataManager {
   }
 
   public async createRecord(payload: Metadata): Promise<Metadata> {
-    this.logger.debug({ msg: 'create new record', metadata: payload });
+    this.logger.debug({ msg: 'create new record', modelId: payload.id, metadata: payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(payload.id);
       if (record !== undefined) {
