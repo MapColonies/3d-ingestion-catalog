@@ -42,14 +42,14 @@ export class MetadataManager {
     try {
       const record: Metadata | undefined = await this.repository.findOne(payload.id);
       if (record !== undefined) {
-        this.logger.error({ msg: 'duplicate identifier', identifier: payload.id });
+        this.logger.error({ msg: 'duplicate identifier', modelId: payload.id });
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }
       const newMetadata: Metadata = await this.repository.save(payload);
       this.logger.info({ msg: 'Saved new record', modelId: payload.id });
       return newMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'Saving new record failed', error });
+      this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, error });
       throw error;
     }
   }
