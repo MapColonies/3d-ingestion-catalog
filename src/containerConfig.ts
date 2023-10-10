@@ -30,7 +30,6 @@ async function registerExternalValues(): Promise<void> {
   container.register(SERVICES.CONFIG, { useValue: config });
 
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
-  // @ts-expect-error the signature is wrong
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, hooks: { logMethod } });
   container.register(SERVICES.LOGGER, { useValue: logger });
 

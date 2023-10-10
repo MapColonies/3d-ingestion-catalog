@@ -20,7 +20,7 @@ export class MetadataManager {
       this.logger.info({ msg: 'Got all records' });
       return records;
     } catch (error) {
-      this.logger.error({ msg: 'Failed to get all records' });
+      this.logger.error({ msg: 'Failed to get all records', error });
       throw error;
     }
   }
@@ -32,24 +32,24 @@ export class MetadataManager {
       this.logger.info({ msg: 'Got metadata ', modelId: identifier });
       return record;
     } catch (error) {
-      this.logger.error({ msg: 'Failed to get metadata', modelId: identifier });
+      this.logger.error({ msg: 'Failed to get metadata', modelId: identifier, error });
       throw error;
     }
   }
 
   public async createRecord(payload: Metadata): Promise<Metadata> {
-    this.logger.debug({ msg: 'create new record', metadata: payload });
+    this.logger.debug({ msg: 'create new record', modelId: payload.id, metadata: payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(payload.id);
       if (record !== undefined) {
-        this.logger.error({ msg: 'duplicate identifier' });
+        this.logger.error({ msg: 'duplicate identifier', modelId: payload.id });
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }
       const newMetadata: Metadata = await this.repository.save(payload);
       this.logger.info({ msg: 'Saved new record', modelId: payload.id });
       return newMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'Saving new record failed' });
+      this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, error });
       throw error;
     }
   }
@@ -59,7 +59,7 @@ export class MetadataManager {
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
-        this.logger.error({ msg: 'model identifier not found' });
+        this.logger.error({ msg: 'model identifier not found', modelId: identifier });
         throw new EntityNotFoundError(`Metadata record ${identifier} does not exist`);
       }
       const metadata: Metadata = { ...record, ...payload };
@@ -78,7 +78,7 @@ export class MetadataManager {
       await this.repository.delete(identifier);
       this.logger.info({ msg: 'Deleted record', modelId: identifier });
     } catch (error) {
-      this.logger.error({ msg: 'Failed to delete record', modelId: identifier });
+      this.logger.error({ msg: 'Failed to delete record', modelId: identifier, error });
       throw error;
     }
   }
@@ -88,7 +88,7 @@ export class MetadataManager {
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
-        this.logger.error({ msg: 'model identifier not found' });
+        this.logger.error({ msg: 'model identifier not found', modelId: identifier });
         throw new EntityNotFoundError(`Metadata record ${identifier} does not exist`);
       }
       const metadata: Metadata = { ...record, productStatus: payload.productStatus };
@@ -108,13 +108,13 @@ export class MetadataManager {
       this.logger.info({ msg: 'Got latest model version', modelId: identifier });
       return metadata !== undefined ? metadata.productVersion : 0;
     } catch (error) {
-      this.logger.error({ msg: 'Error in retrieving latest model version', modelId: identifier });
+      this.logger.error({ msg: 'Error in retrieving latest model version', modelId: identifier, error });
       throw error;
     }
   }
 
   /*
-  deprecated: updatefull record
+  deprecated: updateFull record
   public async updateRecord(identifier: string, payload: Metadata): Promise<Metadata> {
     this.logger.info(`Update metadata record ${identifier}: ${JSON.stringify(payload)}`);
     const ifExists: Metadata | undefined = await this.repository.findOne(identifier);

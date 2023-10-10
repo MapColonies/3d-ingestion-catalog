@@ -6,7 +6,7 @@ import config from 'config';
 import { Connection } from 'typeorm';
 import jsLogger from '@map-colonies/js-logger';
 import { Metadata } from '../../../../src/metadata/models/generated';
-import { createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../../helpers/helpers';
+import { createFakeID, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../../helpers/helpers';
 import { DbConfig } from '../../../../src/common/interfaces';
 import { initializeConnection } from '../../../../src/common/utils/db';
 import { SERVICES } from '../../../../src/common/constants';
@@ -141,6 +141,7 @@ describe('MetadataController', function () {
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
         const oldBody = response.body as unknown as Metadata;
         payload.productId = oldBody.productId;
+        payload.id = createFakeID();
         const newResponse = await requestSender.createRecord(app, payload);
         expect(newResponse.status).toBe(httpStatusCodes.CREATED);
         expect(newResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');

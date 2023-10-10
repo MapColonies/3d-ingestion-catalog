@@ -3,7 +3,6 @@ import wkt from 'terraformer-wkt-parser';
 import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
-import { v4 as uuidV4 } from 'uuid';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { HttpError, NotFoundError } from '../../common/errors';
@@ -35,7 +34,7 @@ export class MetadataController {
       }
       return res.status(httpStatus.OK).json(metadataList);
     } catch (error) {
-      this.logger.error({ msg: 'Couldnt get all records', error });
+      this.logger.error({ msg: `couldn't get all records`, error });
       return next(error);
     }
   };
@@ -75,7 +74,7 @@ export class MetadataController {
     try {
       const { identifier } = req.params;
       const payload: IUpdatePayload = formatStrings<IUpdatePayload>(req.body);
-      const metadata: IUpdateMetadata = this.updatePayloadToMatadata(payload);
+      const metadata: IUpdateMetadata = this.updatePayloadToMetadata(payload);
 
       const updatedPartialMetadata = await this.manager.updatePartialRecord(identifier, metadata);
       return res.status(httpStatus.OK).json(updatedPartialMetadata);
@@ -112,19 +111,17 @@ export class MetadataController {
   };
 
   private async metadataToEntity(payload: IPayload): Promise<Metadata> {
-    const id = uuidV4();
-
-    await this.checkValuesValidation(payload, id);
+    await this.checkValuesValidation(payload);
 
     const entity: Metadata = new Metadata();
     Object.assign(entity, payload);
 
-    entity.id = id;
+    entity.id = payload.id;
     if (payload.productId != undefined) {
       entity.productVersion = (await this.manager.findLastVersion(payload.productId)) + 1;
     } else {
       entity.productVersion = 1;
-      entity.productId = id;
+      entity.productId = payload.id;
     }
 
     if (payload.footprint !== undefined) {
@@ -139,7 +136,7 @@ export class MetadataController {
     return entity;
   }
 
-  private updatePayloadToMatadata(payload: IUpdatePayload): IUpdateMetadata {
+  private updatePayloadToMetadata(payload: IUpdatePayload): IUpdateMetadata {
     const metadata: IUpdateMetadata = {
       ...(payload as IUpdate),
       ...(payload.sensors && { sensors: payload.sensors.join(', ') }),
@@ -148,10 +145,10 @@ export class MetadataController {
     return metadata;
   }
 
-  private async checkValuesValidation(payload: IPayload, id: string): Promise<void> {
+  private async checkValuesValidation(payload: IPayload): Promise<void> {
     // Validates that generated id doesn't exists. If exists, go fill a lottery card now!
-    if (await this.manager.getRecord(id)) {
-      throw new IdAlreadyExistsError(`Metadata record ${id} already exists!`);
+    if (await this.manager.getRecord(payload.id)) {
+      throw new IdAlreadyExistsError(`Metadata record ${payload.id} already exists!`);
     }
 
     // Validates that productId exists (when is not null)
@@ -180,7 +177,7 @@ export class MetadataController {
     }
   }
   /*
-  Deperacted
+  Deprecated
 
   public put: UpdateRequestHandler = async (req, res, next) => {
     try {
