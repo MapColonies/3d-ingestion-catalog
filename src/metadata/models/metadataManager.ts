@@ -55,19 +55,19 @@ export class MetadataManager {
   }
 
   public async updatePartialRecord(identifier: string, payload: IUpdateMetadata): Promise<Metadata> {
-    this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, payload });
+    this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, modelName: payload.productName, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
-        this.logger.error({ msg: 'model identifier not found', modelId: identifier });
+        this.logger.error({ msg: 'model identifier not found', modelId: identifier, modelName: payload.productName });
         throw new EntityNotFoundError(`Metadata record ${identifier} does not exist`);
       }
       const metadata: Metadata = { ...record, ...payload };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
-      this.logger.info({ msg: 'Updated record', modelId: identifier, payload });
+      this.logger.info({ msg: 'Updated record', modelId: identifier, modelName: payload.productName, payload });
       return updatedMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, error, payload });
+      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, modelName: payload.productName, error, payload });
       throw error;
     }
   }
