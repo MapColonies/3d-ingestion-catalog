@@ -28,10 +28,13 @@ export class ServerBuilder {
   }
 
   private buildDocsRoutes(): void {
-    const openapiRouter = new OpenapiViewerRouter(this.config.get<OpenapiRouterConfig>('openapiConfig'));
-    openapiRouter.setup();
-    this.serverInstance.use(this.config.get<string>('openapiConfig.basePath'), openapiRouter.getRouter());
-  }
+    const openapiRouter = new OpenapiViewerRouter({
+    ...this.config.get<OpenapiRouterConfig>('openapiConfig'),
+    filePathOrSpec: this.config.get<string>('openapiConfig.filePath'),
+  });
+  openapiRouter.setup();
+  this.serverInstance.use(this.config.get<string>('openapiConfig.basePath'), openapiRouter.getRouter());
+}
 
   private buildRoutes(): void {
     this.serverInstance.use('/metadata', metadataRouterFactory(container));

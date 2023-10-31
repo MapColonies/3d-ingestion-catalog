@@ -179,7 +179,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`request.body.id should be string`);
+        expect(response.text).toContain(`request/body/id must be string`);
       });
 
       it('should return 400 status code if productId is not exists', async function () {
@@ -200,7 +200,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`request.body should NOT have additional properties`);
+        expect(response.text).toContain(`request/body must NOT have additional properties`);
       });
 
       it('should return 400 status code if sourceStartDate is later than sourceEndDate', async function () {
@@ -235,7 +235,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`request.body should have required property 'region'`);
+        expect(response.text).toContain(`request/body must have required property 'region'`);
       });
 
       it('should return 400 status code if region is empty', async function () {
@@ -245,7 +245,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`request.body.region should NOT have fewer than 1 items`);
+        expect(response.text).toContain(`request/body/region must NOT have fewer than 1 items`);
       });
 
       it('should return 400 status code if sensors not exists', async function () {
@@ -255,7 +255,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`request.body should have required property 'sensors'`);
+        expect(response.text).toContain(`request/body must have required property 'sensors'`);
       });
 
       it('should return 400 status code if sensors is empty', async function () {
@@ -265,7 +265,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`request.body.sensors should NOT have fewer than 1 items`);
+        expect(response.text).toContain(`request/body/sensors must NOT have fewer than 1 items`);
       });
     });
 
@@ -399,7 +399,7 @@ describe('MetadataController', function () {
         const newResponse = await requestSender.updatePartialRecord(app, id, payload);
 
         expect(newResponse.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(newResponse.text).toContain(`request.body should NOT have additional properties`);
+        expect(newResponse.text).toContain(`request/body must NOT have additional properties`);
       });
 
       it('should return 400 status code if sensors is null', async function () {
@@ -415,7 +415,7 @@ describe('MetadataController', function () {
         const newResponse = await requestSender.updatePartialRecord(app, id, payload);
 
         expect(newResponse.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(newResponse.text).toContain(`request.body.sensors should be array`);
+        expect(newResponse.text).toContain(`request/body/sensors must be array`);
       });
     });
 
@@ -512,7 +512,7 @@ describe('MetadataController', function () {
         const newResponse = await requestSender.updateStatusRecord(app, id, payload);
 
         expect(newResponse.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(newResponse.text).toContain(`request.body should NOT have additional properties`);
+        expect(newResponse.text).toContain(`request/body must NOT have additional properties`);
       });
 
       it('should return 400 status code if productStatus is null', async function () {
@@ -527,7 +527,7 @@ describe('MetadataController', function () {
         const newResponse = await requestSender.updateStatusRecord(app, id, payload);
 
         expect(newResponse.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(newResponse.text).toContain(`request.body.productStatus should be string`);
+        expect(newResponse.text).toContain(`request/body/productStatus must be string`);
       });
     });
 
