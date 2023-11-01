@@ -1,7 +1,7 @@
 import { container } from 'tsyringe';
 import config from 'config';
 import { Connection } from 'typeorm';
-import { Attributes, trace } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api';
 import { logMethod, Metrics } from '@map-colonies/telemetry';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { DB_TIMEOUT, SERVICES, SERVICE_NAME } from './common/constants';
@@ -33,8 +33,7 @@ async function registerExternalValues(): Promise<void> {
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, hooks: { logMethod } });
   container.register(SERVICES.LOGGER, { useValue: logger });
 
-  const attributes: Attributes = { name: SERVICE_NAME };
-  const metrics = new Metrics(attributes);
+  const metrics = new Metrics();
   const meter = metrics.start();
   container.register(SERVICES.METER, { useValue: meter });
 
