@@ -33,7 +33,7 @@ async function registerExternalValues(): Promise<void> {
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, hooks: { logMethod } });
   container.register(SERVICES.LOGGER, { useValue: logger });
 
-  const metrics = new Metrics(SERVICE_NAME);
+  const metrics = new Metrics();
   const meter = metrics.start();
   container.register(SERVICES.METER, { useValue: meter });
 
