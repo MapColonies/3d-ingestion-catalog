@@ -20,3 +20,9 @@ export type DbConfig = {
   enableSslAuth: boolean;
   sslPaths: { ca: string; cert: string; key: string };
 } & ConnectionOptions;
+
+export interface ILookupOption{
+  value: string;
+  translationCode: string;
+  properties?: Record<string, unknown> | undefined;
+}

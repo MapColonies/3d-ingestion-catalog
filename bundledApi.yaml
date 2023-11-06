@@ -185,6 +185,8 @@ components:
       minItems: 2
       items:
         type: number
+        minimum: -180
+        maximum: 180
     Point:
       type: object
       description: GeoJSon geometry
@@ -442,7 +444,6 @@ components:
         classification:
           type: string
           example: '5'
-          pattern: ^[0-9]$
           description: Classification of the product
         productionSystem:
           type: string
@@ -601,6 +602,10 @@ components:
           format: double
           nullable: true
           description: Maximum height range of ground
+        classification:
+          type: string
+          example: '5'
+          description: Classification of the product
         producerName:
           type: string
           description: The name of the producer (product owner)

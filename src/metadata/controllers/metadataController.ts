@@ -13,6 +13,7 @@ import { IPayload, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus, Meta
 import { linksToString, formatStrings } from '../../common/utils/format';
 import { BadValues, IdNotExists } from './errors';
 
+
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
 type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
@@ -23,7 +24,10 @@ type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpda
 
 @injectable()
 export class MetadataController {
-  public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger, private readonly manager: MetadataManager) {}
+  public constructor(
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    private readonly manager: MetadataManager, 
+  ) {}
 
   public getAll: GetAllRequestHandler = async (req, res, next) => {
     try {
@@ -74,8 +78,7 @@ export class MetadataController {
     try {
       const { identifier } = req.params;
       const payload: IUpdatePayload = formatStrings<IUpdatePayload>(req.body);
-      const metadata: IUpdateMetadata = this.updatePayloadToMetadata(payload);
-
+      const metadata: IUpdateMetadata = await this.updatePayloadToMetadata(payload);
       const updatedPartialMetadata = await this.manager.updatePartialRecord(identifier, metadata);
       return res.status(httpStatus.OK).json(updatedPartialMetadata);
     } catch (error) {
@@ -136,13 +139,25 @@ export class MetadataController {
     return entity;
   }
 
-  private updatePayloadToMetadata(payload: IUpdatePayload): IUpdateMetadata {
+  private async updatePayloadToMetadata(payload: IUpdatePayload): Promise<IUpdateMetadata> {
+    await this.checkUpdateValues(payload)
+
     const metadata: IUpdateMetadata = {
       ...(payload as IUpdate),
       ...(payload.sensors && { sensors: payload.sensors.join(', ') }),
     };
 
     return metadata;
+  }
+
+  private async checkUpdateValues(payload: IUpdatePayload): Promise<void> {
+    //Validate that the classification is in the possible (from lookup tables)
+    if(payload.classification != undefined){
+      const result = await this.manager.validateClassification(payload.classification);
+      if (typeof result == 'string'){
+        throw new BadValues(`classification is not a valid value..`)
+      }
+    }
   }
 
   private async checkValuesValidation(payload: IPayload): Promise<void> {
@@ -175,7 +190,16 @@ export class MetadataController {
         throw new BadValues('minResolutionMeter should not be bigger than maxResolutionMeter');
       }
     }
+
+    if(payload.classification != undefined){
+      const result = this.manager.validateClassification(payload.classification);
+      if (typeof result == 'string'){
+        throw new BadValues(`classification is not a valid value..`)
+      }
+    }
   }
+
+    // }
   /*
   Deprecated
 
@@ -196,3 +220,4 @@ export class MetadataController {
   };
   */
 }
+

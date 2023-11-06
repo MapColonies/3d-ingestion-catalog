@@ -1,9 +1,11 @@
 import RandExp from 'randexp';
 import faker from 'faker';
+import { randNumber, randWord } from '@ngneat/falso';
 import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-types';
 import { Metadata } from '../../src/metadata/models/generated';
 import { IPayload, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/dataModels/records';
 import { linksToString } from '../../src/common/utils/format';
+import { ILookupOption } from '../../src/common/interfaces';
 
 const classificationHelper = new RandExp('^[0-9]$').gen();
 const productBoundingBoxHelper = new RandExp('^([-+]?(0|[1-9]\\d*)(\\.\\d+)?,){3}[-+]?(0|[1-9]\\d*)(\\.\\d+)?$').gen();
@@ -186,4 +188,19 @@ export const createFakeUpdateStatus = (): IUpdateStatus => {
 
 export const createFakeID = (): string => {
   return faker.datatype.uuid();
+};
+
+export const createLookupOptions = (amount = randNumber({ min: 1, max: 3 })): ILookupOption[] => {
+  const lookupOptions: ILookupOption[] = [];
+  for (let i = 0; i < amount; i++) {
+    lookupOptions.push(createLookupOption());
+  }
+  return lookupOptions;
+};
+
+export const createLookupOption = (): ILookupOption => {
+  return {
+    value: randWord(),
+    translationCode: randWord(),
+  };
 };

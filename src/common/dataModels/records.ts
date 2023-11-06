@@ -18,6 +18,7 @@ export interface IUpdate {
   relativeAccuracySE90?: number;
   visualAccuracy?: number;
   heightRangeFrom?: number;
+  classification?: string;
   heightRangeTo?: number;
   producerName?: string;
   minFlightAlt?: number;
@@ -37,3 +38,4 @@ export interface IUpdateMetadata extends IUpdate {
 export interface IUpdateStatus {
   productStatus: RecordStatus;
 }
+

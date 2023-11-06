@@ -4,6 +4,8 @@ import { EntityNotFoundError, IdAlreadyExistsError } from '../../../../src/metad
 import { Metadata } from '../../../../src/metadata/models/generated';
 import { MetadataManager } from '../../../../src/metadata/models/metadataManager';
 import { createFakeID, createFakeMetadata, createFakeUpdateMetadata, createFakeUpdateStatus } from '../../../helpers/helpers';
+import { lookupTablesMock } from '../../../helpers/mockCreators';
+
 
 let metadataManager: MetadataManager;
 
@@ -12,7 +14,7 @@ describe('MetadataManager', () => {
     const find = jest.fn();
     beforeEach(() => {
       const repository = { find } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }),lookupTablesMock as never);
     });
     afterEach(() => {
       find.mockClear();
@@ -48,7 +50,7 @@ describe('MetadataManager', () => {
     const findOne = jest.fn();
     beforeEach(() => {
       const repository = { findOne } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }),lookupTablesMock as never);
     });
     afterEach(() => {
       findOne.mockClear();
@@ -94,7 +96,7 @@ describe('MetadataManager', () => {
     const findOne = jest.fn();
     beforeEach(() => {
       const repository = { save, findOne } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }),lookupTablesMock as never);
     });
     afterEach(() => {
       jest.clearAllMocks();
@@ -176,7 +178,7 @@ describe('MetadataManager', () => {
     const save = jest.fn();
     beforeEach(() => {
       const repository = { findOne, save } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }),lookupTablesMock as never);
     });
     afterEach(() => {
       jest.clearAllMocks();
@@ -218,7 +220,7 @@ describe('MetadataManager', () => {
     const del = jest.fn();
     beforeEach(() => {
       const repository = { delete: del } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }),lookupTablesMock as never);
     });
     afterEach(() => {
       del.mockClear();
@@ -247,7 +249,7 @@ describe('MetadataManager', () => {
     const save = jest.fn();
     beforeEach(() => {
       const repository = { findOne, save } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }), lookupTablesMock as never);
     });
     afterEach(() => {
       jest.clearAllMocks();
@@ -289,7 +291,7 @@ describe('MetadataManager', () => {
     const findOne = jest.fn();
     beforeEach(() => {
       const repository = { findOne } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }),lookupTablesMock as never);
     });
     afterEach(() => {
       findOne.mockClear();
