@@ -18,8 +18,8 @@ export interface IUpdate {
   relativeAccuracySE90?: number;
   visualAccuracy?: number;
   heightRangeFrom?: number;
-  classification?: string;
   heightRangeTo?: number;
+  classification?: string;
   producerName?: string;
   minFlightAlt?: number;
   maxFlightAlt?: number;

@@ -3,17 +3,14 @@ import { Repository } from 'typeorm';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { IUpdateMetadata, IUpdateStatus } from '../../common/dataModels/records';
-import { LookupTablesCall } from '../../externalServices/lookUpTables/requestCall';
-import { EntityNotFoundError, IdAlreadyExistsError, ServiceNotAvailable } from './errors';
+import { EntityNotFoundError, IdAlreadyExistsError } from './errors';
 import { Metadata } from './generated';
-import { error } from 'express-openapi-validator';
 
 @injectable()
 export class MetadataManager {
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,     
-    private readonly lookupTables: LookupTablesCall
 
   ) {}
 
@@ -45,15 +42,15 @@ export class MetadataManager {
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(payload.id);
-      if (record !== undefined && error instanceof ServiceNotAvailable) {
+      if (record !== undefined) {
         this.logger.error({ msg: 'duplicate identifier', modelId: payload.id });
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }
       const newMetadata: Metadata = await this.repository.save(payload);
-      this.logger.info({ msg: 'Saved new record', modelId: payload.id, modelName: payload.productName, payload })
+      this.logger.info({ msg: 'Saved new record', modelId: payload.id, modelName: payload.productName, payload });
       return newMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, modelName: payload.productName, error, payload }) 
+      this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, modelName: payload.productName, error, payload });
       throw error;
     }
   }
@@ -116,15 +113,6 @@ export class MetadataManager {
       this.logger.error({ msg: 'Error in retrieving latest model version', modelId: identifier, error });
       throw error;
     }
-  }
-
-  public async validateClassification(classification: string): Promise<boolean | string> {
-    const classifications = await this.lookupTables.getClassifications();
-    console.log(classifications)
-    if (classifications.includes(classification)) {
-      return true;
-    }
-    return `classification is not a valid value.. Optional values: ${classifications.join()}`;
   }
 
   /*

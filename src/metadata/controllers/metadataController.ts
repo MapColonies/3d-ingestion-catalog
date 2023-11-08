@@ -11,7 +11,9 @@ import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../models/generated';
 import { IPayload, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/dataModels/records';
 import { linksToString, formatStrings } from '../../common/utils/format';
+import { LookupTablesCall } from '../../externalServices/lookUpTables/requestCall';
 import { BadValues, IdNotExists } from './errors';
+
 
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
@@ -27,6 +29,8 @@ export class MetadataController {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     private readonly manager: MetadataManager, 
+    private readonly lookupTables: LookupTablesCall
+
   ) {}
 
   public getAll: GetAllRequestHandler = async (req, res, next) => {
@@ -150,10 +154,20 @@ export class MetadataController {
     return metadata;
   }
 
+  private async validateClassification(classification: string): Promise<boolean | string> {
+    const classifications : string [] = await this.lookupTables.getClassifications();
+    console.log(classifications)
+    if (classifications.includes(classification)) {
+      return true;
+    }
+    return `classification is not a valid value.. Optional values: ${classifications.join()}`;
+  }
+
+
   private async checkUpdateValues(payload: IUpdatePayload): Promise<void> {
     //Validate that the classification is in the possible (from lookup tables)
     if(payload.classification != undefined){
-      const result = await this.manager.validateClassification(payload.classification);
+      const result = await this.validateClassification(payload.classification);
       if (typeof result == 'string'){
         throw new BadValues(`classification is not a valid value..`)
       }
@@ -191,12 +205,14 @@ export class MetadataController {
       }
     }
     if(payload.classification != undefined){
-      const result = await this.manager.validateClassification(payload.classification);
+      const result = await this.validateClassification(payload.classification);
       if (typeof result == 'string' ){
         throw new BadValues(`classification is not a valid value..`)
       }
     }
   }
+
+  
 
     // }
   /*

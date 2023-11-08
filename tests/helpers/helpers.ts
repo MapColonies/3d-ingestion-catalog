@@ -12,10 +12,10 @@ const productBoundingBoxHelper = new RandExp('^([-+]?(0|[1-9]\\d*)(\\.\\d+)?,){3
 const listOfRandomWords = ['avi', 'אבי', 'lalalalala', 'וןםפ'];
 const years = 4;
 
-const minX = faker.datatype.number();
-const minY = faker.datatype.number();
-const maxX = faker.datatype.number({ min: minX });
-const maxY = faker.datatype.number({ min: minY });
+const minX = faker.datatype.number({ min: -180, max: 179 });
+const minY = faker.datatype.number({ min: -180, max: 179 });
+const maxX = faker.datatype.number({ min: minX, max: 180 });
+const maxY = faker.datatype.number({ min: minY, max: 180 });
 const FOOTPRINT = {
   coordinates: [
     [
@@ -52,6 +52,7 @@ function createFakeIUpdate(): Partial<IUpdatePayload> {
     productName: Math.floor(Math.random() * listOfRandomWords.length).toString() + '',
     description: faker.random.word(),
     creationDate: faker.date.past(),
+    classification: faker.random.word(),
     minResolutionMeter: minResolutionMeter,
     maxResolutionMeter: faker.datatype.number({ min: minResolutionMeter, max: maxResolutionMeter }),
     maxAccuracyCE90: faker.datatype.number(noDataAccuracy),
