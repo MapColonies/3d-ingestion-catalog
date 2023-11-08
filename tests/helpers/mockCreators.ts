@@ -1,17 +1,16 @@
 export const lookupTablesMock = {
-    getClassifications: jest.fn(),
-  };
-  
+  getClassifications: jest.fn(),
+};
+
 export const configMock = {
   get: jest.fn(),
   has: jest.fn(),
 };
 
 export const valueValidationMock = {
-  checkValuesValidation : jest.fn(),
+  checkValuesValidation: jest.fn(),
 };
 
 export const updateValidatorMock = {
-  checkUpdateValues : jest.fn(),
+  checkUpdateValues: jest.fn(),
 };
-  

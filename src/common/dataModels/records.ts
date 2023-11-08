@@ -38,4 +38,3 @@ export interface IUpdateMetadata extends IUpdate {
 export interface IUpdateStatus {
   productStatus: RecordStatus;
 }
-

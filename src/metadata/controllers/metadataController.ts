@@ -14,8 +14,6 @@ import { linksToString, formatStrings } from '../../common/utils/format';
 import { LookupTablesCall } from '../../externalServices/lookUpTables/requestCall';
 import { BadValues, IdNotExists } from './errors';
 
-
-
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
 type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
@@ -28,9 +26,8 @@ type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpda
 export class MetadataController {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    private readonly manager: MetadataManager, 
+    private readonly manager: MetadataManager,
     private readonly lookupTables: LookupTablesCall
-
   ) {}
 
   public getAll: GetAllRequestHandler = async (req, res, next) => {
@@ -144,7 +141,7 @@ export class MetadataController {
   }
 
   private async updatePayloadToMetadata(payload: IUpdatePayload): Promise<IUpdateMetadata> {
-    await this.checkUpdateValues(payload)
+    await this.checkUpdateValues(payload);
 
     const metadata: IUpdateMetadata = {
       ...(payload as IUpdate),
@@ -155,21 +152,20 @@ export class MetadataController {
   }
 
   private async validateClassification(classification: string): Promise<boolean | string> {
-    const classifications : string [] = await this.lookupTables.getClassifications();
-    console.log(classifications)
+    const classifications: string[] = await this.lookupTables.getClassifications();
+    console.log(classifications);
     if (classifications.includes(classification)) {
       return true;
     }
     return `classification is not a valid value.. Optional values: ${classifications.join()}`;
   }
 
-
   private async checkUpdateValues(payload: IUpdatePayload): Promise<void> {
     //Validate that the classification is in the possible (from lookup tables)
-    if(payload.classification != undefined){
+    if (payload.classification != undefined) {
       const result = await this.validateClassification(payload.classification);
-      if (typeof result == 'string'){
-        throw new BadValues(`classification is not a valid value..`)
+      if (typeof result == 'string') {
+        throw new BadValues(`classification is not a valid value..`);
       }
     }
   }
@@ -204,17 +200,15 @@ export class MetadataController {
         throw new BadValues('minResolutionMeter should not be bigger than maxResolutionMeter');
       }
     }
-    if(payload.classification != undefined){
+    if (payload.classification != undefined) {
       const result = await this.validateClassification(payload.classification);
-      if (typeof result == 'string' ){
-        throw new BadValues(`classification is not a valid value..`)
+      if (typeof result == 'string') {
+        throw new BadValues(`classification is not a valid value..`);
       }
     }
   }
 
-  
-
-    // }
+  // }
   /*
   Deprecated
 
@@ -235,4 +229,3 @@ export class MetadataController {
   };
   */
 }
-

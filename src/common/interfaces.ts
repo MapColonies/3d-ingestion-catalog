@@ -21,7 +21,7 @@ export type DbConfig = {
   sslPaths: { ca: string; cert: string; key: string };
 } & ConnectionOptions;
 
-export interface ILookupOption{
+export interface ILookupOption {
   value: string;
   translationCode: string;
   properties?: Record<string, unknown> | undefined;

@@ -5,7 +5,6 @@ import { LookupTablesCall } from '../../../../../../src/externalServices/lookUpT
 import { ILookupOption } from '../../../../../../src/common/interfaces';
 import { createLookupOptions } from '../../../../../helpers/helpers';
 
-
 describe('lookupTablesCall', () => {
   let lookupTables: LookupTablesCall;
 
@@ -39,4 +38,3 @@ describe('lookupTablesCall', () => {
     });
   });
 });
-

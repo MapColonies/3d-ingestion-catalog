@@ -10,8 +10,7 @@ import { Metadata } from './generated';
 export class MetadataManager {
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
-    @inject(SERVICES.LOGGER) private readonly logger: Logger,     
-
+    @inject(SERVICES.LOGGER) private readonly logger: Logger
   ) {}
 
   public async getAll(): Promise<Metadata[] | undefined> {
@@ -70,8 +69,7 @@ export class MetadataManager {
     } catch (error) {
       this.logger.error({ msg: 'error saving update of record ', modelId: identifier, modelName: payload.productName, error, payload });
       throw error;
-    } 
-
+    }
   }
 
   public async deleteRecord(identifier: string): Promise<void> {

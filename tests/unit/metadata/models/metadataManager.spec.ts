@@ -95,8 +95,7 @@ describe('MetadataManager', () => {
     const findOne = jest.fn();
     beforeEach(() => {
       const repository = { save, findOne } as unknown as Repository<Metadata>;
-      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false })
-      );
+      metadataManager = new MetadataManager(repository, jsLogger({ enabled: false }));
     });
     afterEach(() => {
       jest.clearAllMocks();
@@ -129,7 +128,6 @@ describe('MetadataManager', () => {
 
       await expect(createPromise).rejects.toThrow(IdAlreadyExistsError);
     });
-
   });
 
   /* eslint-disable  */
