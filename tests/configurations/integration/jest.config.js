@@ -19,7 +19,10 @@ module.exports = {
   coverageReporters: ['text', 'html', 'json'],
   moduleDirectories: ['node_modules', 'src'],
   moduleFileExtensions: ['ts', 'js'],
-  collectCoverageFrom: ['<rootDir>/src/metadata/**/*.ts', '!<rootDir>/src/metadata/models/generated.ts'],
+  collectCoverageFrom: [
+    '<rootDir>/src/metadata/**/*.ts', 
+    '!<rootDir>/src/metadata/models/generated.ts'
+  ],
   coverageDirectory: '<rootDir>/coverage',
   coverageThreshold: {
     global: {

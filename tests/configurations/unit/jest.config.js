@@ -13,7 +13,10 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverage: true,
   coverageReporters: ['text', 'html', 'json'],
-  collectCoverageFrom: ['<rootDir>/src/metadata/models/*.ts', '!<rootDir>/src/metadata/models/generated.ts'],
+  collectCoverageFrom: [
+    '<rootDir>/src/metadata/models/*.ts', 
+    '!<rootDir>/src/metadata/models/generated.ts'
+  ],
   coverageDirectory: '<rootDir>/coverage',
   coverageThreshold: {
     global: {

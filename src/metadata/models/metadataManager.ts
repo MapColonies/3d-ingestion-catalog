@@ -4,8 +4,9 @@ import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { IUpdateMetadata, IUpdateStatus } from '../../common/dataModels/records';
 import { LookupTablesCall } from '../../externalServices/lookUpTables/requestCall';
-import { EntityNotFoundError, IdAlreadyExistsError } from './errors';
+import { EntityNotFoundError, IdAlreadyExistsError, ServiceNotAvailable } from './errors';
 import { Metadata } from './generated';
+import { error } from 'express-openapi-validator';
 
 @injectable()
 export class MetadataManager {
@@ -44,7 +45,7 @@ export class MetadataManager {
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(payload.id);
-      if (record !== undefined) {
+      if (record !== undefined && error instanceof ServiceNotAvailable) {
         this.logger.error({ msg: 'duplicate identifier', modelId: payload.id });
         throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
       }

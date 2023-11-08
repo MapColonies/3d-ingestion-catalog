@@ -190,10 +190,9 @@ export class MetadataController {
         throw new BadValues('minResolutionMeter should not be bigger than maxResolutionMeter');
       }
     }
-
     if(payload.classification != undefined){
-      const result = this.manager.validateClassification(payload.classification);
-      if (typeof result == 'string'){
+      const result = await this.manager.validateClassification(payload.classification);
+      if (typeof result == 'string' ){
         throw new BadValues(`classification is not a valid value..`)
       }
     }

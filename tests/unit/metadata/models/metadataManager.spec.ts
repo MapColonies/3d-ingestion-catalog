@@ -1,11 +1,10 @@
 import jsLogger from '@map-colonies/js-logger';
 import { QueryFailedError, Repository } from 'typeorm';
-import { EntityNotFoundError, IdAlreadyExistsError } from '../../../../src/metadata/models/errors';
+import { EntityNotFoundError, IdAlreadyExistsError, ServiceNotAvailable } from '../../../../src/metadata/models/errors';
 import { Metadata } from '../../../../src/metadata/models/generated';
 import { MetadataManager } from '../../../../src/metadata/models/metadataManager';
 import { createFakeID, createFakeMetadata, createFakeUpdateMetadata, createFakeUpdateStatus } from '../../../helpers/helpers';
-import { lookupTablesMock } from '../../../helpers/mockCreators';
-
+import { lookupTablesMock, valueValidationMock } from '../../../helpers/mockCreators';
 
 let metadataManager: MetadataManager;
 
@@ -128,6 +127,17 @@ describe('MetadataManager', () => {
       const createPromise = metadataManager.createRecord(metadata);
 
       await expect(createPromise).rejects.toThrow(IdAlreadyExistsError);
+    });
+
+    it('rejects if lookup-tables service is not available', async () => {
+      const metadata = createFakeMetadata();
+      findOne.mockResolvedValue(metadata);
+      valueValidationMock.checkValuesValidation.mockRejectedValue(new Error('lookup-tables service is not available'));
+
+
+      const createPromise = metadataManager.createRecord(metadata);
+
+      await expect(createPromise).rejects.toThrow(Error('lookup-tables service is not available'));
     });
   });
 

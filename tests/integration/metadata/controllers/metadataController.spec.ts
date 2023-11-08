@@ -1,5 +1,6 @@
 import httpStatusCodes from 'http-status-codes';
 import { container } from 'tsyringe';
+import mockAxios from 'jest-mock-axios';
 import { Application } from 'express';
 import { QueryFailedError } from 'typeorm';
 import config from 'config';
@@ -11,6 +12,7 @@ import { DbConfig } from '../../../../src/common/interfaces';
 import { initializeConnection } from '../../../../src/common/utils/db';
 import { SERVICES } from '../../../../src/common/constants';
 import { IPayload, IUpdatePayload, IUpdateStatus } from '../../../../src/common/dataModels/records';
+import { ILookupOption } from '../../../../src/externalServices/lookUpTables/interfaces';
 import * as requestSender from './helpers/requestSender';
 
 describe('MetadataController', function () {
@@ -45,6 +47,7 @@ describe('MetadataController', function () {
 
       it('should return 200 status code and a metadata records list', async function () {
         const payload = createFakePayload();
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const createResponse = await requestSender.createRecord(app, payload);
         expect(createResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
@@ -122,6 +125,8 @@ describe('MetadataController', function () {
     describe('Happy Path 🙂', function () {
       it('if productId not exists, should return 201 status code and the added metadata record when productVersion = 1', async function () {
         const payload = createFakePayload();
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
+
         const response = await requestSender.createRecord(app, payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
@@ -142,6 +147,8 @@ describe('MetadataController', function () {
         const oldBody = response.body as unknown as Metadata;
         payload.productId = oldBody.productId;
         payload.id = createFakeID();
+
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const newResponse = await requestSender.createRecord(app, payload);
         expect(newResponse.status).toBe(httpStatusCodes.CREATED);
         expect(newResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
@@ -158,6 +165,8 @@ describe('MetadataController', function () {
       it("if region contains string with a ', should return 201 status code and the added metadata record as expected", async function () {
         const payload = createFakePayload();
         payload.region = ["st'rng"];
+
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.CREATED);
@@ -175,6 +184,7 @@ describe('MetadataController', function () {
       it('should return 400 status code if id is not exists or null', async function () {
         const payload = createFakePayload();
         payload.id = null as unknown as string;
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -185,6 +195,7 @@ describe('MetadataController', function () {
       it('should return 400 status code if productId is not exists', async function () {
         const payload = createFakePayload();
         payload.productId = '2';
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -196,6 +207,7 @@ describe('MetadataController', function () {
         const entity = { avi: 'aviavi' };
         const payload: IPayload = createFakePayload();
         Object.assign(payload, entity);
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -208,6 +220,7 @@ describe('MetadataController', function () {
         const temp = payload.sourceDateStart;
         payload.sourceDateStart = payload.sourceDateEnd;
         payload.sourceDateEnd = temp;
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -221,6 +234,7 @@ describe('MetadataController', function () {
         const temp = payload.minResolutionMeter;
         payload.minResolutionMeter = payload.maxResolutionMeter;
         payload.maxResolutionMeter = temp;
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -231,6 +245,7 @@ describe('MetadataController', function () {
       it('should return 400 status code if region not exists', async function () {
         const payload = createFakePayload();
         payload.region = undefined;
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -241,6 +256,7 @@ describe('MetadataController', function () {
       it('should return 400 status code if region is empty', async function () {
         const payload = createFakePayload();
         payload.region = [];
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -251,6 +267,7 @@ describe('MetadataController', function () {
       it('should return 400 status code if sensors not exists', async function () {
         const payload = createFakePayload();
         payload.sensors = undefined;
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -261,6 +278,7 @@ describe('MetadataController', function () {
       it('should return 400 status code if sensors is empty', async function () {
         const payload = createFakePayload();
         payload.sensors = [];
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
 
@@ -274,6 +292,7 @@ describe('MetadataController', function () {
         const payload = createFakePayload();
         const findMock = jest.fn().mockResolvedValue(payload);
         const mockedApp = requestSender.getMockedRepoApp({ findOne: findMock });
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(mockedApp, payload);
         expect(response.status).toBe(httpStatusCodes.UNPROCESSABLE_ENTITY);
@@ -284,6 +303,7 @@ describe('MetadataController', function () {
         const payload = createFakePayload();
         const findMock = jest.fn().mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
         const mockedApp = requestSender.getMockedRepoApp({ findOne: findMock });
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(mockedApp, payload);
 
