@@ -19,6 +19,7 @@ export interface IUpdate {
   visualAccuracy?: number;
   heightRangeFrom?: number;
   heightRangeTo?: number;
+  classification?: string;
   producerName?: string;
   minFlightAlt?: number;
   maxFlightAlt?: number;
