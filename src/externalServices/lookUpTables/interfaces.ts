@@ -1,5 +1,6 @@
 export interface LookupTablesConfig {
   url: string;
+  subUrl: string;
 }
 
 export interface ILookupOption {

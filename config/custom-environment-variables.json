@@ -60,6 +60,7 @@
     "database": "DB_NAME"
   },
   "lookupTables": {
-    "url": "LOOKUP_TABLES_SERVICE_URL"
+    "url": "LOOKUP_TABLES_URL",
+    "subUrl": "LOOKUP_TABLES_SUB_URL"
   }
 }

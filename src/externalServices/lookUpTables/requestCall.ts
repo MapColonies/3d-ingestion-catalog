@@ -17,7 +17,7 @@ export class LookupTablesCall {
     this.logger.debug({
       msg: 'Get Classifications from lookup-tables service',
     });
-    const response = await axios.get<ILookupOption[]>(`${this.lookupTables.url}/lookup-tables/lookupData/classification`);
+    const response = await axios.get<ILookupOption[]>(`${this.lookupTables.url}/${this.lookupTables.subUrl}/classification`);
     const classifications: string[] = [];
     for (const item of response.data) {
       classifications.push(item.value);

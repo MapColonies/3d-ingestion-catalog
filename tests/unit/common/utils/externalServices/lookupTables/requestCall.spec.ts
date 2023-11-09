@@ -4,6 +4,7 @@ import jsLogger from '@map-colonies/js-logger';
 import { LookupTablesCall } from '../../../../../../src/externalServices/lookUpTables/requestCall';
 import { ILookupOption } from '../../../../../../src/common/interfaces';
 import { createLookupOptions } from '../../../../../helpers/helpers';
+import { LookupTablesConfig } from '../../../../../../src/externalServices/lookUpTables/interfaces';
 
 describe('lookupTablesCall', () => {
   let lookupTables: LookupTablesCall;
@@ -17,7 +18,7 @@ describe('lookupTablesCall', () => {
 
   describe('getClassifications Function', () => {
     it('Get the classification without errors', async () => {
-      const url = config.get<string>('lookupTables.url');
+      const lookupTablesConfig = config.get<LookupTablesConfig>('lookupTables');
 
       const lookupOptions: ILookupOption[] = createLookupOptions(2);
       const expected = [lookupOptions[0].value, lookupOptions[1].value];
@@ -25,7 +26,7 @@ describe('lookupTablesCall', () => {
 
       const result = await lookupTables.getClassifications();
 
-      expect(mockAxios.get).toHaveBeenCalledWith(`${url}/lookup-tables/lookupData/classification`);
+      expect(mockAxios.get).toHaveBeenCalledWith(`${lookupTablesConfig.url}/${lookupTablesConfig.subUrl}/classification`);
       expect(result).toMatchObject(expected);
     });
 
