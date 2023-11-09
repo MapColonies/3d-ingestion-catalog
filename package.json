@@ -32,8 +32,8 @@
     "prebundleOpenApi": "npm run copySchema",
     "bundleOpenApi": "openapi bundle --output ./bundledApi.yaml --ext yaml ./openapi3.yaml",
     "postbundleOpenApi": "rimraf Schema",
-    "generate-files": "npm run bundleOpenApi && npm run generate-record-entity",
-    "fakeDB": "docker-compose up -d && npm run migration:run"
+    "generate-files": "npm run bundleOpenApi && npm run genenpm run migration:runrate-record-entity",
+    "fakeDB": "docker-compose up -d && "
   },
   "directories": {
     "test": "tests"
