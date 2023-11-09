@@ -541,7 +541,6 @@ describe('MetadataController', function () {
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
         const id = (response.body as unknown as Metadata).id;
         const updatedPayload: IUpdateStatus = createFakeUpdateStatus();
-  
 
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
