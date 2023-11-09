@@ -1,6 +1,5 @@
 import RandExp from 'randexp';
 import faker from 'faker';
-import { randNumber, randWord } from '@ngneat/falso';
 import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-types';
 import { Metadata } from '../../src/metadata/models/generated';
 import { IPayload, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/dataModels/records';
@@ -191,7 +190,7 @@ export const createFakeID = (): string => {
   return faker.datatype.uuid();
 };
 
-export const createLookupOptions = (amount = randNumber({ min: 1, max: 3 })): ILookupOption[] => {
+export const createLookupOptions = (amount = faker.datatype.number({ min: 1, max: 3 })): ILookupOption[] => {
   const lookupOptions: ILookupOption[] = [];
   for (let i = 0; i < amount; i++) {
     lookupOptions.push(createLookupOption());
@@ -201,7 +200,7 @@ export const createLookupOptions = (amount = randNumber({ min: 1, max: 3 })): IL
 
 export const createLookupOption = (): ILookupOption => {
   return {
-    value: randWord(),
-    translationCode: randWord(),
+    value: faker.random.word(),
+    translationCode: faker.random.word(),
   };
 };

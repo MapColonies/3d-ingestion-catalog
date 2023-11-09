@@ -1,12 +1,12 @@
 import httpStatusCodes from 'http-status-codes';
 import { container } from 'tsyringe';
 import mockAxios from 'jest-mock-axios';
+import faker from 'faker';
 import { Application } from 'express';
 import { QueryFailedError } from 'typeorm';
 import config from 'config';
 import { Connection } from 'typeorm';
 import jsLogger from '@map-colonies/js-logger';
-import { randWord } from '@ngneat/falso';
 import { Metadata } from '../../../../src/metadata/models/generated';
 import { createFakeID, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../../helpers/helpers';
 import { DbConfig } from '../../../../src/common/interfaces';
@@ -280,7 +280,7 @@ describe('MetadataController', function () {
 
       it('should return 400 status code and error message if classification is not a valid value', async function () {
         const payload: IPayload = createFakePayload();
-        const validClassification = randWord();
+        const validClassification = faker.random.word();
         mockAxios.get.mockResolvedValue({ data: [{ value: validClassification }] as ILookupOption[] });
 
         const response = await requestSender.createRecord(app, payload);
