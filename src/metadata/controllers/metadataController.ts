@@ -115,7 +115,7 @@ export class MetadataController {
   };
 
   private async metadataToEntity(payload: IPayload): Promise<Metadata> {
-    await this.checkValuesValidation(payload);
+    await this.validatePostValues(payload);
 
     const entity: Metadata = new Metadata();
     Object.assign(entity, payload);
@@ -141,7 +141,7 @@ export class MetadataController {
   }
 
   private async updatePayloadToMetadata(payload: IUpdatePayload): Promise<IUpdateMetadata> {
-    await this.checkUpdateValues(payload);
+    await this.validatePatchValues(payload);
 
     const metadata: IUpdateMetadata = {
       ...(payload as IUpdate),
@@ -156,10 +156,10 @@ export class MetadataController {
     if (classifications.includes(classification)) {
       return true;
     }
-    return `classification is not a valid value.. Optional values: ${classifications.join()}`;
+    return `classification is not a valid value..`;
   }
 
-  private async checkUpdateValues(payload: IUpdatePayload): Promise<void> {
+  private async validatePatchValues(payload: IUpdatePayload): Promise<void> {
     //Validate that the classification is in the possible (from lookup tables)
     if (payload.classification != undefined) {
       const result = await this.validateClassification(payload.classification);
@@ -169,7 +169,7 @@ export class MetadataController {
     }
   }
 
-  private async checkValuesValidation(payload: IPayload): Promise<void> {
+  private async validatePostValues(payload: IPayload): Promise<void> {
     // Validates that generated id doesn't exists. If exists, go fill a lottery card now!
     if (await this.manager.getRecord(payload.id)) {
       throw new IdAlreadyExistsError(`Metadata record ${payload.id} already exists!`);
@@ -202,7 +202,7 @@ export class MetadataController {
     if (payload.classification != undefined) {
       const result = await this.validateClassification(payload.classification);
       if (typeof result == 'string') {
-        throw new BadValues(`classification is not a valid value..`);
+        throw new BadValues(result);
       }
     }
   }
