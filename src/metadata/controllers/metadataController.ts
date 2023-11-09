@@ -6,7 +6,7 @@ import { injectable, inject } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { HttpError, NotFoundError } from '../../common/errors';
-import { EntityNotFoundError, IdAlreadyExistsError } from '../models/errors';
+import { EntityNotFoundError, IdAlreadyExistsError, ServiceNotAvailable } from '../models/errors';
 import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../models/generated';
 import { IPayload, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/dataModels/records';
@@ -70,6 +70,8 @@ export class MetadataController {
         (error as HttpError).status = httpStatus.UNPROCESSABLE_ENTITY;
       } else if (error instanceof BadValues || error instanceof IdNotExists) {
         (error as HttpError).status = httpStatus.BAD_REQUEST;
+      } else if (error instanceof ServiceNotAvailable) {
+        (error as HttpError).status = httpStatus.INTERNAL_SERVER_ERROR;
       }
       return next(error);
     }
@@ -85,6 +87,9 @@ export class MetadataController {
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         (error as HttpError).status = httpStatus.NOT_FOUND;
+      }
+      if (error instanceof ServiceNotAvailable) {
+        (error as HttpError).status = httpStatus.INTERNAL_SERVER_ERROR;
       }
       return next(error);
     }
@@ -161,11 +166,18 @@ export class MetadataController {
 
   private async validatePatchValues(payload: IUpdatePayload): Promise<void> {
     //Validate that the classification is in the possible (from lookup tables)
-    if (payload.classification != undefined) {
-      const result = await this.validateClassification(payload.classification);
-      if (typeof result == 'string') {
-        throw new BadValues(`classification is not a valid value..`);
+    try {
+      if (payload.classification != undefined) {
+        const result = await this.validateClassification(payload.classification);
+        if (typeof result == 'string') {
+          throw new BadValues(`classification is not a valid value..`);
+        }
       }
+    } catch (error) {
+      if (error instanceof BadValues) {
+        throw error;
+      }
+      throw new ServiceNotAvailable(`Lookup-tables is not available!`);
     }
   }
 
@@ -199,11 +211,18 @@ export class MetadataController {
         throw new BadValues('minResolutionMeter should not be bigger than maxResolutionMeter');
       }
     }
-    if (payload.classification != undefined) {
-      const result = await this.validateClassification(payload.classification);
-      if (typeof result == 'string') {
-        throw new BadValues(result);
+    try {
+      if (payload.classification != undefined) {
+        const result = await this.validateClassification(payload.classification);
+        if (typeof result == 'string') {
+          throw new BadValues('');
+        }
       }
+    } catch (error) {
+      if (error instanceof BadValues) {
+        throw error;
+      }
+      throw new ServiceNotAvailable(`Lookup-tables is not available!`);
     }
   }
 

@@ -282,11 +282,12 @@ describe('MetadataController', function () {
         const payload: IPayload = createFakePayload();
         const validClassification = faker.random.word();
         mockAxios.get.mockResolvedValue({ data: [{ value: validClassification }] as ILookupOption[] });
-
+        const entity = { classification: 13 };
+        Object.assign(payload, entity);
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', `classification is not a valid value..`);
+        expect(response.body).toHaveProperty('message', 'request/body/classification must be string');
       });
     });
 
@@ -318,7 +319,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'lookup-tables is not available');
+        expect(response.body).toHaveProperty('message', 'Lookup-tables is not available!');
       });
     });
   });
@@ -427,7 +428,6 @@ describe('MetadataController', function () {
         const entity = { classification: 13 };
         Object.assign(payload, entity);
         updatedPayload.classification = payload.classification;
-        console.log('classification', updatedPayload.classification);
 
         const newResponse = await requestSender.updatePartialRecord(app, id, updatedPayload);
 
@@ -460,7 +460,7 @@ describe('MetadataController', function () {
         const newResponse = await requestSender.updatePartialRecord(app, payload.id, updatedPayload);
 
         expect(newResponse.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(newResponse.body).toHaveProperty('message', 'lookup-tables is not available');
+        expect(newResponse.body).toHaveProperty('message', 'Lookup-tables is not available!');
       });
     });
   });
