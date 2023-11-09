@@ -16,7 +16,8 @@
       "cwd": "${workspaceFolder}/dist",
       "skipFiles": ["${workspaceFolder}/node_modules/**/*.js", "<node_internals>/**/*.js"],
       "outFiles": ["${workspaceFolder}/dist/**/*.js", "!**/node_modules/**"],
-      "program": "${workspaceFolder}/src/index.ts"
+      "program": "${workspaceFolder}/src/index.ts",
+      
     },
     {
       "type": "node",

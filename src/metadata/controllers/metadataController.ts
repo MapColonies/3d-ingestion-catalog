@@ -153,7 +153,6 @@ export class MetadataController {
 
   private async validateClassification(classification: string): Promise<boolean | string> {
     const classifications: string[] = await this.lookupTables.getClassifications();
-    console.log(classifications);
     if (classifications.includes(classification)) {
       return true;
     }
