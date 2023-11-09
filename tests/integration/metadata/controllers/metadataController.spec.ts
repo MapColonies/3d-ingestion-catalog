@@ -452,12 +452,12 @@ describe('MetadataController', function () {
 
       it('should return 500 status code if a network exception happens in lookup-tables service', async function () {
         const payload: IPayload = createFakePayload();
-        mockAxios.get.mockRejectedValueOnce(new Error('lookup-tables is not available'));
-        const id = payload.id;
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
+
         const updatedPayload: IUpdatePayload = createFakeUpdatePayload();
-        const entity = { sensors: null };
-        Object.assign(payload, entity);
-        const newResponse = await requestSender.updatePartialRecord(app, id, updatedPayload);
+        mockAxios.get.mockRejectedValueOnce(new Error('lookup-tables is not available'));
+
+        const newResponse = await requestSender.updatePartialRecord(app, payload.id, updatedPayload);
 
         expect(newResponse.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(newResponse.body).toHaveProperty('message', 'lookup-tables is not available');
