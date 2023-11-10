@@ -282,12 +282,12 @@ describe('MetadataController', function () {
         const payload: IPayload = createFakePayload();
         const validClassification = faker.random.word();
         mockAxios.get.mockResolvedValue({ data: [{ value: validClassification }] as ILookupOption[] });
-        const entity = { classification: 13 };
+        const entity = { classification: '13' };
         Object.assign(payload, entity);
         const response = await requestSender.createRecord(app, payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', 'request/body/classification must be string');
+        expect(response.body).toHaveProperty('message', 'classification is not a valid value!');
       });
     });
 
@@ -317,9 +317,8 @@ describe('MetadataController', function () {
         mockAxios.get.mockRejectedValueOnce(new Error('lookup-tables is not available'));
 
         const response = await requestSender.createRecord(app, payload);
-
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'Lookup-tables is not available!');
+        expect(response.body).toHaveProperty('message', 'lookup-tables is not available');
       });
     });
   });
@@ -419,20 +418,23 @@ describe('MetadataController', function () {
       it('should return 400 status code and error message if classification is not a valid value', async function () {
         const payload: IPayload = createFakePayload();
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
+
         const response = await requestSender.createRecord(app, payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
+
         const responseBody = response.body as unknown as Metadata;
         const id = responseBody.id;
         const updatedPayload = createFakeUpdatePayload();
-        const entity = { classification: 13 };
-        Object.assign(payload, entity);
-        updatedPayload.classification = payload.classification;
+        const validClassifications = faker.random.word();
 
+        mockAxios.get.mockResolvedValue({ data: [{ value: validClassifications }] as ILookupOption[] });
+        const entity = { classification: '13' };
+        Object.assign(updatedPayload, entity);
         const newResponse = await requestSender.updatePartialRecord(app, id, updatedPayload);
 
         expect(newResponse.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(newResponse.text).toBe('{"message":"request/body/classification must be string"}');
+        expect(newResponse.text).toBe('{"message":"classification is not a valid value!"}');
       });
     });
 

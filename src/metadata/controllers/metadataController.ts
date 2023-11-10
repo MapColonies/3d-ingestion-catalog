@@ -87,8 +87,9 @@ export class MetadataController {
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         (error as HttpError).status = httpStatus.NOT_FOUND;
-      }
-      if (error instanceof ServiceNotAvailable) {
+      } else if (error instanceof BadValues) {
+        (error as HttpError).status = httpStatus.BAD_REQUEST;
+      } else if (error instanceof ServiceNotAvailable) {
         (error as HttpError).status = httpStatus.INTERNAL_SERVER_ERROR;
       }
       return next(error);
@@ -161,7 +162,7 @@ export class MetadataController {
     if (classifications.includes(classification)) {
       return true;
     }
-    return `classification is not a valid value..`;
+    return 'classification is not a valid value!';
   }
 
   private async validatePatchValues(payload: IUpdatePayload): Promise<void> {
@@ -170,12 +171,12 @@ export class MetadataController {
       if (payload.classification != undefined) {
         const result = await this.validateClassification(payload.classification);
         if (typeof result == 'string') {
-          throw new BadValues(`classification is not a valid value..`);
+          throw new BadValues('classification is not a valid value!');
         }
       }
     } catch (error) {
       if (error instanceof BadValues) {
-        throw error;
+        throw new BadValues('classification is not a valid value!');
       }
       throw new ServiceNotAvailable(`Lookup-tables is not available!`);
     }
@@ -215,14 +216,14 @@ export class MetadataController {
       if (payload.classification != undefined) {
         const result = await this.validateClassification(payload.classification);
         if (typeof result == 'string') {
-          throw new BadValues('');
+          throw new BadValues('classification is not a valid value!');
         }
       }
     } catch (error) {
       if (error instanceof BadValues) {
-        throw error;
+        throw new BadValues('classification is not a valid value!');
       }
-      throw new ServiceNotAvailable(`Lookup-tables is not available!`);
+      throw new ServiceNotAvailable(`lookup-tables is not available`);
     }
   }
 
