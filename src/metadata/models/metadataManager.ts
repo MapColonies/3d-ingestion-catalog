@@ -112,18 +112,4 @@ export class MetadataManager {
       throw error;
     }
   }
-
-  /*
-  deprecated: updateFull record
-  public async updateRecord(identifier: string, payload: Metadata): Promise<Metadata> {
-    this.logger.info(`Update metadata record ${identifier}: ${JSON.stringify(payload)}`);
-    const ifExists: Metadata | undefined = await this.repository.findOne(identifier);
-    if (ifExists == undefined && payload.id) {
-      throw new EntityNotFoundError(`Metadata record ${identifier} does not exist`);
-    }
-    const newMetadata: Partial<Metadata> = { ...payload, id: identifier };
-    const updatedMetadata = await this.repository.save(newMetadata);
-    return updatedMetadata;
-  }
-  */
 }

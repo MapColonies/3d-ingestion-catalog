@@ -285,9 +285,10 @@ describe('MetadataController', function () {
         const entity = { classification: '13' };
         Object.assign(payload, entity);
         const response = await requestSender.createRecord(app, payload);
+        
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', 'classification is not a valid value!');
+        expect(response.body).toHaveProperty('message', `classification is not a valid value! Optional values: ${validClassification}`);
       });
     });
 
@@ -318,7 +319,7 @@ describe('MetadataController', function () {
 
         const response = await requestSender.createRecord(app, payload);
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'lookup-tables is not available');
+        expect(response.body).toHaveProperty('message', 'Lookup-tables is not available!');
       });
     });
   });
@@ -431,10 +432,11 @@ describe('MetadataController', function () {
         mockAxios.get.mockResolvedValue({ data: [{ value: validClassifications }] as ILookupOption[] });
         const entity = { classification: '13' };
         Object.assign(updatedPayload, entity);
+
         const newResponse = await requestSender.updatePartialRecord(app, id, updatedPayload);
 
         expect(newResponse.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(newResponse.text).toBe('{"message":"classification is not a valid value!"}');
+        expect(newResponse.body).toHaveProperty('message', `classification is not a valid value! Optional values: ${validClassifications}`);
       });
     });
 
