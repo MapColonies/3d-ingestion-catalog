@@ -285,7 +285,6 @@ describe('MetadataController', function () {
         const entity = { classification: '13' };
         Object.assign(payload, entity);
         const response = await requestSender.createRecord(app, payload);
-        
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response.body).toHaveProperty('message', `classification is not a valid value! Optional values: ${validClassification}`);

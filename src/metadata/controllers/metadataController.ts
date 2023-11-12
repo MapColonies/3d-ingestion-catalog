@@ -224,7 +224,6 @@ export class MetadataController {
         throw error;
       }
       throw new ServiceNotAvailable(`Lookup-tables is not available!`);
-
     }
   }
 }
