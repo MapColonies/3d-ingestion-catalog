@@ -457,7 +457,7 @@ describe('MetadataController', function () {
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
 
         const updatedPayload: IUpdatePayload = createFakeUpdatePayload();
-        mockAxios.get.mockRejectedValueOnce(new Error('lookup-tables is not available'));
+        mockAxios.get.mockRejectedValueOnce(new Error('Lookup-tables is not available!'));
 
         const newResponse = await requestSender.updatePartialRecord(app, payload.id, updatedPayload);
 

@@ -176,7 +176,7 @@ export class MetadataController {
       }
     } catch (error) {
       if (error instanceof BadValues) {
-        throw new BadValues('classification is not a valid value!');
+        throw error;
       }
       throw new ServiceNotAvailable(`Lookup-tables is not available!`);
     }
@@ -221,30 +221,9 @@ export class MetadataController {
       }
     } catch (error) {
       if (error instanceof BadValues) {
-        throw new BadValues('classification is not a valid value!');
+        throw error;
       }
-      throw new ServiceNotAvailable(`lookup-tables is not available`);
+      throw error;
     }
   }
-
-  // }
-  /*
-  Deprecated
-
-  public put: UpdateRequestHandler = async (req, res, next) => {
-    try {
-      const { identifier } = req.params;
-      const payload: IPayload = formatStrings<IPayload>(req.body);
-      const metadata = await this.metadataToEntity(payload);
-
-      const updatedMetadata = await this.manager.updateRecord(identifier, metadata);
-      return res.status(httpStatus.OK).json(updatedMetadata);
-    } catch (error) {
-      if (error instanceof EntityNotFoundError) {
-        (error as HttpError).status = httpStatus.NOT_FOUND;
-      }
-      return next(error);
-    }
-  };
-  */
 }
