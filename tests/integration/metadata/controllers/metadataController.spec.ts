@@ -303,6 +303,7 @@ describe('MetadataController', function () {
 
       it('should return 500 status code if a db exception happens', async function () {
         const payload = createFakePayload();
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const findMock = jest.fn().mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
         const mockedApp = requestSender.getMockedRepoApp({ findOne: findMock });
 
