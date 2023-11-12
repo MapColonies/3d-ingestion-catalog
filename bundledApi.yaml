@@ -338,7 +338,7 @@ components:
           example: 3DPhotoRealistic
         description:
           type: string
-          maxLength: 250
+          maxLength: 500
           nullable: true
           description: description and comments
         creationDate:
@@ -528,7 +528,7 @@ components:
         description:
           type: string
           nullable: true
-          maxLength: 250
+          maxLength: 500
           description: description and comments
         creationDate:
           type: string
