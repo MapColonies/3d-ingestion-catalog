@@ -11,3 +11,10 @@ export class EntityNotFoundError extends Error {
     Object.setPrototypeOf(this, EntityNotFoundError.prototype);
   }
 }
+
+export class ServiceNotAvailable extends Error {
+  public constructor(message: string) {
+    super(message);
+    Object.setPrototypeOf(this, ServiceNotAvailable.prototype);
+  }
+}

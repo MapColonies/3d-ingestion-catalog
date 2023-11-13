@@ -6,11 +6,12 @@ import { injectable, inject } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import { SERVICES } from '../../common/constants';
 import { HttpError, NotFoundError } from '../../common/errors';
-import { EntityNotFoundError, IdAlreadyExistsError } from '../models/errors';
+import { EntityNotFoundError, IdAlreadyExistsError, ServiceNotAvailable } from '../models/errors';
 import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../models/generated';
 import { IPayload, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/dataModels/records';
 import { linksToString, formatStrings } from '../../common/utils/format';
+import { LookupTablesCall } from '../../externalServices/lookUpTables/requestCall';
 import { BadValues, IdNotExists } from './errors';
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
@@ -23,7 +24,11 @@ type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpda
 
 @injectable()
 export class MetadataController {
-  public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger, private readonly manager: MetadataManager) {}
+  public constructor(
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    private readonly manager: MetadataManager,
+    private readonly lookupTables: LookupTablesCall
+  ) {}
 
   public getAll: GetAllRequestHandler = async (req, res, next) => {
     try {
@@ -65,6 +70,8 @@ export class MetadataController {
         (error as HttpError).status = httpStatus.UNPROCESSABLE_ENTITY;
       } else if (error instanceof BadValues || error instanceof IdNotExists) {
         (error as HttpError).status = httpStatus.BAD_REQUEST;
+      } else if (error instanceof ServiceNotAvailable) {
+        (error as HttpError).status = httpStatus.INTERNAL_SERVER_ERROR;
       }
       return next(error);
     }
@@ -74,13 +81,16 @@ export class MetadataController {
     try {
       const { identifier } = req.params;
       const payload: IUpdatePayload = formatStrings<IUpdatePayload>(req.body);
-      const metadata: IUpdateMetadata = this.updatePayloadToMetadata(payload);
-
+      const metadata: IUpdateMetadata = await this.updatePayloadToMetadata(payload);
       const updatedPartialMetadata = await this.manager.updatePartialRecord(identifier, metadata);
       return res.status(httpStatus.OK).json(updatedPartialMetadata);
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         (error as HttpError).status = httpStatus.NOT_FOUND;
+      } else if (error instanceof BadValues) {
+        (error as HttpError).status = httpStatus.BAD_REQUEST;
+      } else if (error instanceof ServiceNotAvailable) {
+        (error as HttpError).status = httpStatus.INTERNAL_SERVER_ERROR;
       }
       return next(error);
     }
@@ -111,7 +121,7 @@ export class MetadataController {
   };
 
   private async metadataToEntity(payload: IPayload): Promise<Metadata> {
-    await this.checkValuesValidation(payload);
+    await this.validatePostValues(payload);
 
     const entity: Metadata = new Metadata();
     Object.assign(entity, payload);
@@ -136,7 +146,9 @@ export class MetadataController {
     return entity;
   }
 
-  private updatePayloadToMetadata(payload: IUpdatePayload): IUpdateMetadata {
+  private async updatePayloadToMetadata(payload: IUpdatePayload): Promise<IUpdateMetadata> {
+    await this.validatePatchValues(payload);
+
     const metadata: IUpdateMetadata = {
       ...(payload as IUpdate),
       ...(payload.sensors && { sensors: payload.sensors.join(', ') }),
@@ -145,7 +157,32 @@ export class MetadataController {
     return metadata;
   }
 
-  private async checkValuesValidation(payload: IPayload): Promise<void> {
+  private async validateClassification(classification: string): Promise<boolean | string> {
+    const classifications: string[] = await this.lookupTables.getClassifications();
+    if (classifications.includes(classification)) {
+      return true;
+    }
+    return `classification is not a valid value! Optional values: ${classifications.join()}`;
+  }
+
+  private async validatePatchValues(payload: IUpdatePayload): Promise<void> {
+    //Validate that the classification is in the possible (from lookup tables)
+    try {
+      if (payload.classification != undefined) {
+        const result = await this.validateClassification(payload.classification);
+        if (typeof result == 'string') {
+          throw new BadValues(result);
+        }
+      }
+    } catch (error) {
+      if (error instanceof BadValues) {
+        throw error;
+      }
+      throw new ServiceNotAvailable(`Lookup-tables is not available!`);
+    }
+  }
+
+  private async validatePostValues(payload: IPayload): Promise<void> {
     // Validates that generated id doesn't exists. If exists, go fill a lottery card now!
     if (await this.manager.getRecord(payload.id)) {
       throw new IdAlreadyExistsError(`Metadata record ${payload.id} already exists!`);
@@ -175,24 +212,18 @@ export class MetadataController {
         throw new BadValues('minResolutionMeter should not be bigger than maxResolutionMeter');
       }
     }
-  }
-  /*
-  Deprecated
-
-  public put: UpdateRequestHandler = async (req, res, next) => {
     try {
-      const { identifier } = req.params;
-      const payload: IPayload = formatStrings<IPayload>(req.body);
-      const metadata = await this.metadataToEntity(payload);
-
-      const updatedMetadata = await this.manager.updateRecord(identifier, metadata);
-      return res.status(httpStatus.OK).json(updatedMetadata);
-    } catch (error) {
-      if (error instanceof EntityNotFoundError) {
-        (error as HttpError).status = httpStatus.NOT_FOUND;
+      if (payload.classification != undefined) {
+        const result = await this.validateClassification(payload.classification);
+        if (typeof result == 'string') {
+          throw new BadValues(result);
+        }
       }
-      return next(error);
+    } catch (error) {
+      if (error instanceof BadValues) {
+        throw error;
+      }
+      throw new ServiceNotAvailable(`Lookup-tables is not available!`);
     }
-  };
-  */
+  }
 }

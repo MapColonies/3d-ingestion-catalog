@@ -10,6 +10,7 @@ import { Metadata } from './metadata/models/generated';
 import { initializeConnection } from './common/utils/db';
 import { tracing } from './common/tracing';
 import { DbConfig } from './common/interfaces';
+import { LookupTablesCall } from './externalServices/lookUpTables/requestCall';
 
 const healthCheck = (connection: Connection): (() => Promise<void>) => {
   return async (): Promise<void> => {
@@ -45,7 +46,7 @@ async function registerExternalValues(): Promise<void> {
   const connection = await initializeConnection(connectionOptions);
   container.register(Connection, { useValue: connection });
   container.register(SERVICES.METADATA_REPOSITORY, { useValue: connection.getRepository(Metadata) });
-
+  container.register(SERVICES.LOOKUP_TABLES, { useClass: LookupTablesCall });
   container.register(SERVICES.HEALTHCHECK, { useValue: healthCheck(connection) });
   container.register('onSignal', {
     useValue: async (): Promise<void> => {
