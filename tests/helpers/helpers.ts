@@ -1,7 +1,7 @@
 import RandExp from 'randexp';
 import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-types';
 import { randBetweenDate, randNumber, randPastDate, randSentence, randUuid, randWord } from '@ngneat/falso';
-import { Metadata } from '../../src/metadata/models/generated';
+import { Metadata } from '../../src/DAL/entity/generated';
 import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
 import { linksToString } from '../../src/common/utils/format';

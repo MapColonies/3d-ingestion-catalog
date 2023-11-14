@@ -1,5 +1,5 @@
 import { RecordStatus } from '@map-colonies/mc-model-types';
-import { ConnectionOptions } from 'typeorm';
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 export interface IServerConfig {
   port: string;
@@ -17,10 +17,10 @@ export interface OpenApiConfig {
   uiPath: string;
 }
 
-export type DbConfig = {
+export interface DbConfig extends PostgresConnectionOptions {
   enableSslAuth: boolean;
   sslPaths: { ca: string; cert: string; key: string };
-} & ConnectionOptions;
+}
 
 export interface MetadataParams {
   identifier: string;

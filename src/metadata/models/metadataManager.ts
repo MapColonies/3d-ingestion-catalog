@@ -10,7 +10,7 @@ import { ValidationManager } from '../../validator/validationManager';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
-import { Metadata } from './generated';
+import { Metadata } from '../../DAL/entity/generated';
 
 @injectable()
 export class MetadataManager {

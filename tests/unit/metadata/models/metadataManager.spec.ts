@@ -1,7 +1,7 @@
 import jsLogger from '@map-colonies/js-logger';
 import { QueryFailedError, Repository } from 'typeorm';
 import httpStatus from 'http-status-codes';
-import { Metadata } from '../../../../src/metadata/models/generated';
+import { Metadata } from '../../../../src/DAL/entity/generated';
 import { MetadataManager } from '../../../../src/metadata/models/metadataManager';
 import { createUuid, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../../helpers/helpers';
 import { validationManagerMock } from '../../../helpers/mockCreators';

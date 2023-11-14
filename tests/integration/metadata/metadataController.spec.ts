@@ -4,7 +4,7 @@ import httpStatusCodes from 'http-status-codes';
 import mockAxios from 'jest-mock-axios';
 import { QueryFailedError } from 'typeorm';
 import { randWord } from '@ngneat/falso';
-import { Metadata } from '../../../src/metadata/models/generated';
+import { Metadata } from '../../../src/DAL/entity/generated';
 import { createUuid, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../helpers/helpers';
 import { SERVICES } from '../../../src/common/constants';
 import { IUpdatePayload, IUpdateStatus } from '../../../src/common/interfaces';
@@ -17,13 +17,13 @@ import { MetadataRequestSender } from './helpers/requestSender';
 describe('MetadataController', function () {
   let requestSender: MetadataRequestSender;
 
-  beforeEach(function () {
-    const app = getApp({
+  beforeAll(async function () {
+    const app = await getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
         { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
       ],
-      // useChild: true,
+      useChild: true,
     });
     requestSender = new MetadataRequestSender(app);
   });
@@ -58,8 +58,8 @@ describe('MetadataController', function () {
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(function () {
-        const app = getApp({
+      beforeEach(async function () {
+        const app = await getApp({
           override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
@@ -107,8 +107,8 @@ describe('MetadataController', function () {
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(function () {
-        const app = getApp({
+      beforeEach(async function () {
+        const app = await getApp({
           override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
@@ -295,8 +295,8 @@ describe('MetadataController', function () {
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(function () {
-        const app = getApp({
+      beforeEach(async function () {
+        const app = await getApp({
           override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
@@ -449,8 +449,8 @@ describe('MetadataController', function () {
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(function () {
-        const app = getApp({
+      beforeEach(async function () {
+        const app = await getApp({
           override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
@@ -511,8 +511,8 @@ describe('MetadataController', function () {
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(function () {
-        const app = getApp({
+      beforeEach(async function () {
+        const app = await getApp({
           override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
@@ -604,8 +604,8 @@ describe('MetadataController', function () {
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(function () {
-        const app = getApp({
+      beforeEach(async function () {
+        const app = await getApp({
           override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
