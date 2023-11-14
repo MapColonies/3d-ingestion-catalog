@@ -1,3 +1,4 @@
+import { RecordStatus } from '@map-colonies/mc-model-types';
 import { ConnectionOptions } from 'typeorm';
 
 export interface IServerConfig {
@@ -21,8 +22,39 @@ export type DbConfig = {
   sslPaths: { ca: string; cert: string; key: string };
 } & ConnectionOptions;
 
-export interface ILookupOption {
-  value: string;
-  translationCode: string;
-  properties?: Record<string, unknown> | undefined;
+export interface MetadataParams {
+  identifier: string;
+}
+
+export interface IUpdate {
+  productName?: string;
+  description?: string;
+  creationDate?: Date;
+  minResolutionMeter?: number;
+  maxResolutionMeter?: number;
+  maxAccuracyCE90?: number;
+  absoluteAccuracyLE90?: number;
+  accuracySE90?: number;
+  relativeAccuracySE90?: number;
+  visualAccuracy?: number;
+  heightRangeFrom?: number;
+  heightRangeTo?: number;
+  classification?: string;
+  producerName?: string;
+  minFlightAlt?: number;
+  maxFlightAlt?: number;
+  geographicArea?: string;
+  keywords?: string;
+}
+
+export interface IUpdatePayload extends IUpdate {
+  sensors?: string[];
+}
+
+export interface IUpdateMetadata extends IUpdate {
+  sensors?: string;
+}
+
+export interface IUpdateStatus {
+  productStatus: RecordStatus;
 }

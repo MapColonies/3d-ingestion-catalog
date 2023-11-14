@@ -1,10 +1,9 @@
 import mockAxios from 'jest-mock-axios';
 import config from 'config';
 import jsLogger from '@map-colonies/js-logger';
-import { LookupTablesCall } from '../../../../../../src/externalServices/lookUpTables/requestCall';
-import { ILookupOption } from '../../../../../../src/common/interfaces';
-import { createLookupOptions } from '../../../../../helpers/helpers';
-import { LookupTablesConfig } from '../../../../../../src/externalServices/lookUpTables/interfaces';
+import { LookupTablesCall } from '../../../../src/externalServices/lookUpTables/requestCall';
+import { createLookupOptions } from '../../../helpers/helpers';
+import { ILookupOption, LookupTablesConfig } from '../../../../src/externalServices/lookUpTables/interfaces';
 
 describe('lookupTablesCall', () => {
   let lookupTables: LookupTablesCall;

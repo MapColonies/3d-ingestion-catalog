@@ -1,14 +1,1 @@
-{
-  "telemetry": {
-    "logger": {
-      "prettyPrint": false
-    }
-  },
-  "server": {
-    "request": {
-      "payload": {
-        "limit": "5mb"
-      }
-    }
-  }
-}
+{}

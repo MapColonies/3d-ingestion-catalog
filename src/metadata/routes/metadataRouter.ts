@@ -16,4 +16,6 @@ const metadataRouterFactory: FactoryFunction<Router> = (dependencyContainer) => 
   return router;
 };
 
+export const METADATA_ROUTER_SYMBOL = Symbol('metadataRouterFactory');
+
 export { metadataRouterFactory };

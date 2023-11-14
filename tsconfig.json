@@ -1,7 +1,4 @@
 {
-  "files": [
-    "declarations.d.ts"
-  ],
   "compilerOptions": {
     "target": "es2021",
     "module": "commonjs",
@@ -14,6 +11,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["declarations.d.ts", "src"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "tests"]
 }

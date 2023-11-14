@@ -1,5 +1,6 @@
 import { Link } from '@map-colonies/mc-model-types';
-import { IPayload, IUpdatePayload } from '../dataModels/records';
+import { IUpdatePayload } from '../interfaces';
+import { IPayload } from '../types';
 
 export const deserializeLinks = (linksStr: string | undefined): Link[] => {
   if (linksStr == undefined) {

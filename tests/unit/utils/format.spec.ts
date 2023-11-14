@@ -1,5 +1,5 @@
 import { Link } from '@map-colonies/mc-model-types';
-import { deserializeLinks, formatStrings, linksToString } from '../../../../src/common/utils/format';
+import { deserializeLinks, formatStrings, linksToString } from '../../../src/common/utils/format';
 
 describe('format tests', () => {
   describe('deserializeLinks tests', () => {
