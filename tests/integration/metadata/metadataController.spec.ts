@@ -60,9 +60,7 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(function () {
         const app = getApp({
-          override: [
-            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
-          ],
+          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
@@ -111,9 +109,7 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(function () {
         const app = getApp({
-          override: [
-            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
-          ],
+          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
@@ -301,9 +297,7 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(function () {
         const app = getApp({
-          override: [
-            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
-          ],
+          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
@@ -457,9 +451,7 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(function () {
         const app = getApp({
-          override: [
-            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
-          ],
+          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
@@ -468,7 +460,7 @@ describe('MetadataController', function () {
       it('should return 500 status code if a db exception happens', async function () {
         const metadata = createFakeMetadata();
         const payload = createFakeUpdatePayload();
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));        
+        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
 
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const response = await requestSender.updateRecord(metadata.id, payload);
@@ -521,9 +513,7 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(function () {
         const app = getApp({
-          override: [
-            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
-          ],
+          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
@@ -616,9 +606,7 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(function () {
         const app = getApp({
-          override: [
-            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
-          ],
+          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);

@@ -17,4 +17,4 @@ export const repositoryMock = {
   find: jest.fn(),
   save: jest.fn(),
   delete: jest.fn(),
-}
+};

@@ -122,7 +122,9 @@ describe('ValidationManager', () => {
 
       const result = async () => validationManager['validateUniqID'](id);
 
-      await expect(result).rejects.toThrow(new AppError('Catalog', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB during validation of ID', true));
+      await expect(result).rejects.toThrow(
+        new AppError('Catalog', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB during validation of ID', true)
+      );
     });
   });
 
@@ -159,7 +161,9 @@ describe('ValidationManager', () => {
 
       const result = async () => validationManager['validateProductID'](productId);
 
-      await expect(result).rejects.toThrow(new AppError('Catalog', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB during validation of productID', true));
+      await expect(result).rejects.toThrow(
+        new AppError('Catalog', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB during validation of productID', true)
+      );
     });
   });
 
@@ -188,7 +192,9 @@ describe('ValidationManager', () => {
 
       const result = async () => validationManager['validateRecordExistence'](id);
 
-      await expect(result).rejects.toThrow(new AppError('Catalog', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB during validation of record existence', true));
+      await expect(result).rejects.toThrow(
+        new AppError('Catalog', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB during validation of record existence', true)
+      );
     });
   });
 
@@ -204,7 +210,7 @@ describe('ValidationManager', () => {
     });
 
     it('returns error string when has one invalid function', async () => {
-      const payload = createFakePayload()
+      const payload = createFakePayload();
       repositoryMock.findOne.mockResolvedValueOnce(undefined); // For validateUniqID
       lookupTablesMock.getClassifications.mockResolvedValue([randWord()]);
 
@@ -228,7 +234,7 @@ describe('ValidationManager', () => {
 
     it('returns error string when has one invalid function', async () => {
       const id = randUuid();
-      const payload = createFakeUpdatePayload()
+      const payload = createFakeUpdatePayload();
       lookupTablesMock.getClassifications.mockResolvedValue([randWord()]);
 
       const result = await validationManager.validatePatch(id, payload);

@@ -149,7 +149,7 @@ export class MetadataManager {
 
     entity.id = payload.id;
     if (payload.productId != undefined) {
-      entity.productVersion = await this.findLastVersion(payload.productId) + 1;
+      entity.productVersion = (await this.findLastVersion(payload.productId)) + 1;
     } else {
       entity.productVersion = 1;
       entity.productId = payload.id;

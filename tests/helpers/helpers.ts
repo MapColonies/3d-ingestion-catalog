@@ -5,7 +5,7 @@ import { Metadata } from '../../src/metadata/models/generated';
 import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
 import { linksToString } from '../../src/common/utils/format';
-import {ILookupOption} from '../../src/externalServices/lookUpTables/interfaces'
+import { ILookupOption } from '../../src/externalServices/lookUpTables/interfaces';
 
 const productBoundingBoxHelper = new RandExp('^([-+]?(0|[1-9]\\d*)(\\.\\d+)?,){3}[-+]?(0|[1-9]\\d*)(\\.\\d+)?$').gen();
 
@@ -44,7 +44,7 @@ const linksPattern = [
 ];
 
 function createFakeIUpdate(): Partial<IUpdatePayload> {
-  const minResolutionMeter = randNumber({ max: maxResolutionMeter});
+  const minResolutionMeter = randNumber({ max: maxResolutionMeter });
   const payload: IUpdatePayload = {
     productName: randWord(),
     description: randWord(),
@@ -83,11 +83,11 @@ export const createFakePayload = (): IPayload => {
     sourceDateEnd: sourceDateEnd,
     minResolutionMeter: minResolutionMeter,
     maxResolutionMeter: randNumber({ min: minResolutionMeter, max: maxResolutionMeter }),
-    maxAccuracyCE90: randNumber({max:noDataAccuracy}),
-    absoluteAccuracyLE90: randNumber({max:noDataAccuracy}),
-    accuracySE90: randNumber({max:maxSE90}),
-    relativeAccuracySE90: randNumber({max:maxAccuracy}),
-    visualAccuracy: randNumber({max:maxAccuracy}),
+    maxAccuracyCE90: randNumber({ max: noDataAccuracy }),
+    absoluteAccuracyLE90: randNumber({ max: noDataAccuracy }),
+    accuracySE90: randNumber({ max: maxSE90 }),
+    relativeAccuracySE90: randNumber({ max: maxAccuracy }),
+    visualAccuracy: randNumber({ max: maxAccuracy }),
     sensors: [randWord()],
     footprint: FOOTPRINT as GeoJSON.Geometry,
     heightRangeFrom: randNumber(),
@@ -124,11 +124,11 @@ export const createFakeMetadata = (): Metadata => {
     sourceDateEnd: sourceDateEnd,
     minResolutionMeter: minResolutionMeter,
     maxResolutionMeter: randNumber({ min: minResolutionMeter, max: maxResolutionMeter }),
-    maxAccuracyCE90: randNumber({max:noDataAccuracy}),
-    absoluteAccuracyLE90: randNumber({max:noDataAccuracy}),
-    accuracySE90: randNumber({max:maxSE90}),
-    relativeAccuracySE90: randNumber({max:maxAccuracy}),
-    visualAccuracy: randNumber({max:maxAccuracy}),
+    maxAccuracyCE90: randNumber({ max: noDataAccuracy }),
+    absoluteAccuracyLE90: randNumber({ max: noDataAccuracy }),
+    accuracySE90: randNumber({ max: maxSE90 }),
+    relativeAccuracySE90: randNumber({ max: maxAccuracy }),
+    visualAccuracy: randNumber({ max: maxAccuracy }),
     footprint: FOOTPRINT as GeoJSON.Geometry,
     heightRangeFrom: randNumber(),
     heightRangeTo: randNumber(),

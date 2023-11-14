@@ -195,7 +195,9 @@ describe('MetadataManager', () => {
 
       const updatePromise = metadataManager.updateRecord(identifier, payload);
 
-      await expect(updatePromise).rejects.toThrow(new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true));
+      await expect(updatePromise).rejects.toThrow(
+        new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true)
+      );
     });
   });
 
@@ -266,7 +268,9 @@ describe('MetadataManager', () => {
 
       const updatePromise = metadataManager.updateStatusRecord(identifier, record);
 
-      await expect(updatePromise).rejects.toThrow(new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true));
+      await expect(updatePromise).rejects.toThrow(
+        new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true)
+      );
     });
   });
 

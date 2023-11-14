@@ -80,7 +80,7 @@ export class ValidationManager {
       return true;
     }
     try {
-      if (await this.repository.findOne(productId) === undefined) {
+      if ((await this.repository.findOne(productId)) === undefined) {
         return `productId: '${productId}' doesn't exist in the DB`;
       }
       return true;
