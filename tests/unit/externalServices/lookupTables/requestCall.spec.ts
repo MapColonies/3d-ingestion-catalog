@@ -18,7 +18,6 @@ describe('lookupTablesCall', () => {
   describe('getClassifications Function', () => {
     it('Get the classification without errors', async () => {
       const lookupTablesConfig = config.get<LookupTablesConfig>('lookupTables');
-
       const lookupOptions: ILookupOption[] = createLookupOptions(2);
       const expected = [lookupOptions[0].value, lookupOptions[1].value];
       mockAxios.get.mockResolvedValue({ data: lookupOptions });

@@ -16,7 +16,7 @@ describe('MetadataManager', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-  
+
   describe('getAll tests', () => {
     it('returns a metadata list', async () => {
       const metadata = createFakeMetadata();
@@ -164,9 +164,7 @@ describe('MetadataManager', () => {
 
       const response = metadataManager.updateRecord(identifier, payload);
 
-      await expect(response).rejects.toThrow(
-        new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true)
-      );
+      await expect(response).rejects.toThrow(new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true));
     });
   });
 
@@ -220,9 +218,7 @@ describe('MetadataManager', () => {
 
       const response = metadataManager.updateStatusRecord(identifier, record);
 
-      await expect(response).rejects.toThrow(
-        new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true)
-      );
+      await expect(response).rejects.toThrow(new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true));
     });
   });
 
