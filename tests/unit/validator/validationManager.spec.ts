@@ -232,6 +232,17 @@ describe('ValidationManager', () => {
       expect(result).toBe(true);
     });
 
+    it('returns true when does not have classification', async () => {
+      const id = randUuid();
+      const payload = createFakeUpdatePayload();
+      delete payload.classification;
+      repositoryMock.findOne.mockResolvedValueOnce(id); // For validateRecordExistence
+
+      const result = await validationManager.validatePatch(id, payload);
+
+      expect(result).toBe(true);
+    });
+
     it('returns error string when has one invalid function', async () => {
       const id = randUuid();
       const payload = createFakeUpdatePayload();
