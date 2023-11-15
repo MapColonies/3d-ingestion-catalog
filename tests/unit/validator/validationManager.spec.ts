@@ -1,6 +1,6 @@
 import jsLogger from '@map-colonies/js-logger';
 import httpStatus from 'http-status-codes';
-import { randUuid, randWord } from '@ngneat/falso';
+import { randNumber, randUuid, randWord } from '@ngneat/falso';
 import { ValidationManager } from '../../../src/validator/validationManager';
 import { AppError } from '../../../src/common/appError';
 import { lookupTablesMock, repositoryMock } from '../../helpers/mockCreators';
@@ -77,7 +77,7 @@ describe('ValidationManager', () => {
 
     it('returns false when classification does not exist in lookup-tables', async () => {
       const classification = randWord();
-      const optionalClassifications = [randWord(), randWord()];
+      const optionalClassifications = randWord({ length: randNumber({max: 3}) });
       lookupTablesMock.getClassifications.mockResolvedValue(optionalClassifications);
 
       const result = await validationManager['validateClassification'](classification);
