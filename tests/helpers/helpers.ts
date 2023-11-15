@@ -5,7 +5,7 @@ import { Metadata } from '../../src/DAL/entity/generated';
 import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
 import { linksToString } from '../../src/common/utils/format';
-import { ILookupOption } from '../../src/externalServices/lookUpTables/interfaces';
+import { ILookupOption } from '../../src/externalServices/lookupTables/interfaces';
 
 const productBoundingBoxHelper = new RandExp('^([-+]?(0|[1-9]\\d*)(\\.\\d+)?,){3}[-+]?(0|[1-9]\\d*)(\\.\\d+)?$').gen();
 

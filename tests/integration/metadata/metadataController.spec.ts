@@ -10,7 +10,7 @@ import { SERVICES } from '../../../src/common/constants';
 import { IUpdatePayload, IUpdateStatus } from '../../../src/common/interfaces';
 import { IPayload } from '../../../src/common/types';
 import { lookupTablesMock, repositoryMock } from '../../helpers/mockCreators';
-import { ILookupOption } from '../../../src/externalServices/lookUpTables/interfaces';
+import { ILookupOption } from '../../../src/externalServices/lookupTables/interfaces';
 import { getApp } from '../../../src/app';
 import { MetadataRequestSender } from './helpers/requestSender';
 
