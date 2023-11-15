@@ -8,7 +8,6 @@ import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../../DAL/entity/generated';
 import { IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/interfaces';
 import { IPayload } from '../../common/types';
-import { LookupTablesCall } from '../../externalServices/lookUpTables/requestCall';
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
@@ -24,8 +23,7 @@ export class MetadataController {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(MetadataManager) private readonly manager: MetadataManager,
-    @inject(SERVICES.METER) private readonly meter: Meter,
-    @inject(LookupTablesCall) private readonly lookupTables: LookupTablesCall
+    @inject(SERVICES.METER) private readonly meter: Meter
   ) {
     this.createdResourceCounter = meter.createCounter('created_resource');
   }

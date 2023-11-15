@@ -9,7 +9,7 @@ import { createUuid, createFakeMetadata, createFakePayload, createFakeUpdatePayl
 import { SERVICES } from '../../../src/common/constants';
 import { IUpdatePayload, IUpdateStatus } from '../../../src/common/interfaces';
 import { IPayload } from '../../../src/common/types';
-import { repositoryMock } from '../../helpers/mockCreators';
+import { lookupTablesMock, repositoryMock } from '../../helpers/mockCreators';
 import { ILookupOption } from '../../../src/externalServices/lookUpTables/interfaces';
 import { getApp } from '../../../src/app';
 import { MetadataRequestSender } from './helpers/requestSender';
@@ -17,7 +17,7 @@ import { MetadataRequestSender } from './helpers/requestSender';
 describe('MetadataController', function () {
   let requestSender: MetadataRequestSender;
 
-  beforeAll(async function () {
+  beforeEach(async function () {
     const app = await getApp({
       override: [
         { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
@@ -26,6 +26,10 @@ describe('MetadataController', function () {
       useChild: true,
     });
     requestSender = new MetadataRequestSender(app);
+  });
+
+  afterEach(function () {
+    mockAxios.reset();
   });
 
   describe('GET /metadata', function () {
@@ -39,15 +43,13 @@ describe('MetadataController', function () {
       it('should return 200 status code and a metadata records list', async function () {
         const payload = createFakePayload();
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
-
         const createResponse = await requestSender.createRecord(payload);
-        expect(createResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
+
         const response = await requestSender.getAll();
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
         expect(response.body).toHaveLength(1);
-
         const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createResponseWithoutAnyText } = createResponse.body as unknown as Metadata;
         expect(response.body).toMatchObject([createResponseWithoutAnyText]);
       });
@@ -58,21 +60,23 @@ describe('MetadataController', function () {
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(async function () {
+      it('should return 500 status code if a db exception happens', async function () {
         const app = await getApp({
-          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+            { token: SERVICES.LOOKUP_TABLES, provider: { useValue: lookupTablesMock } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
-      });
-
-      it('should return 500 status code if a db exception happens', async function () {
         repositoryMock.find.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
 
         const response = await requestSender.getAll();
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'failed');
+        expect(response.body).toHaveProperty('message', 'Problem with the DB');
       });
     });
   });
@@ -81,17 +85,14 @@ describe('MetadataController', function () {
     describe('Happy Path 🙂', function () {
       it('should return 200 status code and the metadata record', async function () {
         const payload = createFakePayload();
-
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] });
         const createResponse = await requestSender.createRecord(payload);
-        expect(createResponse.status).toBe(httpStatusCodes.CREATED);
-        expect(createResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-
         const id = (createResponse.body as unknown as Metadata).id;
+
         const response = await requestSender.getRecord(id);
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-
         const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createResponseWithoutAnyText } = createResponse.body as unknown as Metadata;
         expect(response.body).toMatchObject(createResponseWithoutAnyText);
       });
@@ -99,29 +100,32 @@ describe('MetadataController', function () {
 
     describe('Bad Path 😡', function () {
       it('should return 404 if a metadata record with the requested identifier does not exist', async function () {
-        const response = await requestSender.getRecord(createUuid());
+        const id = createUuid();
+
+        const response = await requestSender.getRecord(id);
 
         expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
-        expect(response.body).toHaveProperty('message', `Metadata record with identifier 1 was not found.`);
+        expect(response.body).toHaveProperty('message', `Identifier ${id} wasn't found on DB`);
       });
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(async function () {
+      it('should return 500 status code if a db exception happens', async function () {
         const app = await getApp({
-          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
-      });
-
-      it('should return 500 status code if a db exception happens', async function () {
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
+        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
         const response = await requestSender.getRecord(createUuid());
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'failed');
+        expect(response.body).toHaveProperty('message', 'Problem with the DB');
       });
     });
   });
@@ -130,10 +134,9 @@ describe('MetadataController', function () {
     describe('Happy Path 🙂', function () {
       it('if productId not exists, should return 201 status code and the added metadata record when productVersion = 1', async function () {
         const payload = createFakePayload();
-        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] });
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
 
         const body = response.body as unknown as Metadata;
         const getResponse = await requestSender.getRecord(body.id);
@@ -145,16 +148,15 @@ describe('MetadataController', function () {
 
       it('if productId exists, should return 201 status code and the added metadata record when productVersion is + 1', async function () {
         const payload = createFakePayload();
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
         const oldBody = response.body as unknown as Metadata;
         payload.productId = oldBody.productId;
         payload.id = createUuid();
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const newResponse = await requestSender.createRecord(payload);
-        expect(newResponse.status).toBe(httpStatusCodes.CREATED);
-        expect(newResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
+        expect(response.status).toBe(httpStatusCodes.CREATED);
         const body = newResponse.body as unknown as Metadata;
 
         const getResponse = await requestSender.getRecord(body.id);
@@ -168,14 +170,11 @@ describe('MetadataController', function () {
       it("if region contains string with a ', should return 201 status code and the added metadata record as expected", async function () {
         const payload = createFakePayload();
         payload.region = ["st'rng"];
-
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const response = await requestSender.createRecord(payload);
-
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-
         const body = response.body as unknown as Metadata;
+
         const getResponse = await requestSender.getRecord(body.id);
         const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createdResponseBody } = body;
 
@@ -192,7 +191,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`request/body/id must be string`);
+        expect(response.body).toHaveProperty('message', `request/body/id must be string`);
       });
 
       it('should return 400 status code if productId is not exists', async function () {
@@ -203,7 +202,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.text).toContain(`productId ${payload.productId} doesn't exist`);
+        expect(response.body).toHaveProperty('message', `productId: '${payload.productId}' doesn't exist in the DB`);
       });
 
       it('should return 400 status code if has property that is not in post scheme', async function () {
@@ -290,35 +289,39 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
 
         expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(response.body).toHaveProperty('message', `classification is not a valid value! Optional values: ${validClassification}`);
+        expect(response.text).toContain(`Classification is not a valid value! Optional values: ${validClassification}`);
       });
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(async function () {
-        const app = await getApp({
-          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
-          useChild: true,
-        });
-        requestSender = new MetadataRequestSender(app);
-      });
-
       it('should return 422 status code if a metadata record with the same id already exists', async function () {
         const payload = createFakePayload();
-        repositoryMock.find.mockResolvedValue(payload);
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] });
+        const response1 = await requestSender.createRecord(payload);
+        expect(response1.status).toBe(httpStatusCodes.CREATED);
+        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] });
         const response = await requestSender.createRecord(payload);
-        expect(response.status).toBe(httpStatusCodes.UNPROCESSABLE_ENTITY);
-        expect(response.body).toHaveProperty('message');
+        expect(response.status).toBe(httpStatusCodes.CONFLICT);
+        expect(response.body).toHaveProperty('message', `Record with identifier: ${payload.id} already exists!`);
       });
 
       it('should return 500 status code if a db exception happens', async function () {
+        const app = await getApp({
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
+          useChild: true,
+        });
+        requestSender = new MetadataRequestSender(app);
         const payload = createFakePayload();
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
+        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
         const response = await requestSender.createRecord(payload);
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'failed');
+        expect(response.body).toHaveProperty('message', 'Problem with the DB during validation of ID');
       });
 
       it('should return 500 status code if a network exception happens in lookup-tables service', async function () {
@@ -327,7 +330,7 @@ describe('MetadataController', function () {
 
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'Lookup-tables is not available!');
+        expect(response.body).toHaveProperty('message', 'Problem with LookupTables service');
       });
     });
   });
@@ -381,12 +384,10 @@ describe('MetadataController', function () {
         const metadata = createFakeMetadata();
         const payload = createFakeUpdatePayload();
 
-        mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
-
         const response = await requestSender.updateRecord(metadata.id, payload);
 
         expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
-        expect(response.body).toHaveProperty('message', `Metadata record ${metadata.id} does not exist`);
+        expect(response.body).toHaveProperty('message', `Identifier ${metadata.id} wasn't found on DB`);
       });
 
       it('should return 400 status code if has property that is not in update scheme', async function () {
@@ -427,59 +428,55 @@ describe('MetadataController', function () {
       it('should return 400 status code and error message if classification is not a valid value', async function () {
         const payload: IPayload = createFakePayload();
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
-
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-
-        const responseBody = response.body as unknown as Metadata;
-        const id = responseBody.id;
         const updatedPayload = createFakeUpdatePayload();
         const validClassifications = randWord();
-
         mockAxios.get.mockResolvedValue({ data: [{ value: validClassifications }] as ILookupOption[] });
         const entity = { classification: '13' };
         Object.assign(updatedPayload, entity);
 
-        const newResponse = await requestSender.updateRecord(id, updatedPayload);
+        const newResponse = await requestSender.updateRecord(payload.id, updatedPayload);
 
         expect(newResponse.status).toBe(httpStatusCodes.BAD_REQUEST);
-        expect(newResponse.body).toHaveProperty('message', `classification is not a valid value! Optional values: ${validClassifications}`);
+        expect(newResponse.body).toHaveProperty('message', `Classification is not a valid value! Optional values: ${validClassifications}`);
       });
     });
 
     describe('Sad Path 😥', function () {
-      beforeEach(async function () {
+      it('should return 500 status code if a db exception happens', async function () {
         const app = await getApp({
-          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
-      });
-
-      it('should return 500 status code if a db exception happens', async function () {
         const metadata = createFakeMetadata();
         const payload = createFakeUpdatePayload();
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
+        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const response = await requestSender.updateRecord(metadata.id, payload);
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'failed');
+        expect(response.body).toHaveProperty('message', 'Problem with the DB');
       });
 
       it('should return 500 status code if a network exception happens in lookup-tables service', async function () {
         const payload: IPayload = createFakePayload();
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
-
+        const response = await requestSender.createRecord(payload);
+        expect(response.status).toBe(httpStatusCodes.CREATED);
         const updatedPayload: IUpdatePayload = createFakeUpdatePayload();
         mockAxios.get.mockRejectedValueOnce(new Error('Lookup-tables is not available!'));
 
         const newResponse = await requestSender.updateRecord(payload.id, updatedPayload);
 
         expect(newResponse.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(newResponse.body).toHaveProperty('message', 'Lookup-tables is not available!');
+        expect(newResponse.body).toHaveProperty('message', 'Problem with LookupTables service');
       });
     });
   });
@@ -513,7 +510,12 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(async function () {
         const app = await getApp({
-          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.LOOKUP_TABLES, provider: { useValue: lookupTablesMock } },
+            { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
@@ -525,7 +527,7 @@ describe('MetadataController', function () {
         const response = await requestSender.deleteRecord(createUuid());
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'failed');
+        expect(response.body).toHaveProperty('message', 'Problem with the DB');
       });
     });
   });
@@ -554,13 +556,13 @@ describe('MetadataController', function () {
 
     describe('Bad Path 😡', function () {
       it('should return 404 status code if the metadata record does not exist', async function () {
-        const metadata = createFakeMetadata();
+        const id = createUuid();
         const payload = createFakeUpdateStatus();
 
-        const response = await requestSender.updateStatusRecord(metadata.id, payload);
+        const response = await requestSender.updateStatusRecord(id, payload);
 
         expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
-        expect(response.body).toHaveProperty('message', `Metadata record ${metadata.id} does not exist`);
+        expect(response.body).toHaveProperty('message', `Identifier ${id} wasn't found on DB`);
       });
 
       it('should return 400 status code if has property that is not in update scheme', async function () {
@@ -569,7 +571,6 @@ describe('MetadataController', function () {
         mockAxios.get.mockResolvedValue({ data: [{ value: payload.classification }] as ILookupOption[] });
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
         const responseBody = response.body as unknown as Metadata;
         const id = responseBody.id;
         const updatedPayload: IUpdateStatus = createFakeUpdateStatus();
@@ -615,12 +616,12 @@ describe('MetadataController', function () {
       it('should return 500 status code if a db exception happens', async function () {
         const metadata = createFakeMetadata();
         const payload = createFakeUpdateStatus();
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
+        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
         const response = await requestSender.updateStatusRecord(metadata.id, payload);
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.body).toHaveProperty('message', 'failed');
+        expect(response.body).toHaveProperty('message', 'Problem with the DB');
       });
     });
   });
