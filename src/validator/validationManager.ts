@@ -20,7 +20,7 @@ export class ValidationManager {
   public async validatePatch(id: string, payload: IUpdatePayload): Promise<boolean | string> {
     let result: boolean | string;
 
-    if(payload.classification != undefined) {
+    if (payload.classification != undefined) {
       result = await this.validateClassification(payload.classification);
       if (typeof result == 'string') {
         return result;

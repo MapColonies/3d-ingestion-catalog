@@ -8,8 +8,8 @@ module.exports = {
   ...createConnectionOptions(connectionOptions),
   entities: ['src/DAL/entities/*.ts'],
   migrationsTableName: 'metadata_migration_table',
-  migrations: ['db/migration/*.ts'],
+  migrations: ['src/DAL/migration/*.ts'],
   cli: {
-    migrationsDir: 'db/migration',
+    migrationsDir: 'src/DAL/migration',
   },
 };
