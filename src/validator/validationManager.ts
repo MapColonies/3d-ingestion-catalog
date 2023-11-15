@@ -6,7 +6,7 @@ import { SERVICES } from '../common/constants';
 import { IUpdatePayload } from '../common/interfaces';
 import { AppError } from '../common/appError';
 import { LookupTablesCall } from '../externalServices/lookupTables/requestCall';
-import { Metadata } from '../DAL/entity/generated';
+import { Metadata } from '../DAL/entities/metadata';
 import { IPayload } from '../common/types';
 
 @injectable()

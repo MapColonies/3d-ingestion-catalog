@@ -6,7 +6,7 @@ const connectionOptions = config.get<DbConfig>('db');
 
 module.exports = {
   ...createConnectionOptions(connectionOptions),
-  entities: ['src/DAL/entity/*.ts'],
+  entities: ['src/DAL/entities/*.ts'],
   migrationsTableName: 'metadata_migration_table',
   migrations: ['db/migration/*.ts'],
   cli: {

@@ -6,7 +6,7 @@ import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
-import { Metadata } from './DAL/entity/generated';
+import { Metadata } from './DAL/entities/metadata';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { METADATA_ROUTER_SYMBOL, metadataRouterFactory } from './metadata/routes/metadataRouter';
 import { ConnectionManager } from './DAL/connectionManager';

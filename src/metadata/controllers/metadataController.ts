@@ -5,7 +5,7 @@ import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { MetadataManager } from '../models/metadataManager';
-import { Metadata } from '../../DAL/entity/generated';
+import { Metadata } from '../../DAL/entities/metadata';
 import { IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/interfaces';
 import { IPayload } from '../../common/types';
 

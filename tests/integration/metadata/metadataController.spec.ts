@@ -4,7 +4,7 @@ import httpStatusCodes from 'http-status-codes';
 import mockAxios from 'jest-mock-axios';
 import { QueryFailedError } from 'typeorm';
 import { randWord } from '@ngneat/falso';
-import { Metadata } from '../../../src/DAL/entity/generated';
+import { Metadata } from '../../../src/DAL/entities/metadata';
 import { createUuid, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../helpers/helpers';
 import { SERVICES } from '../../../src/common/constants';
 import { IUpdatePayload, IUpdateStatus } from '../../../src/common/interfaces';

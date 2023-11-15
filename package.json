@@ -28,7 +28,7 @@
     "clean": "rimraf coverage reports dist",
     "install": "npx husky install",
     "copySchema": "copyfiles -u 5 \"./node_modules/@map-colonies/mc-model-types/Schema/yaml/**/*\" ./Schema",
-    "generate-record-entity": "code-generator -p 3d -gt orm -tf src/metadata/models/generated.ts",
+    "generate-record-entity": "code-generator -p 3d -gt orm -tf src/DAL/entities/metadata.ts",
     "prebundleOpenApi": "npm run copySchema",
     "bundleOpenApi": "openapi bundle --output ./bundledApi.yaml --ext yaml ./openapi3.yaml",
     "postbundleOpenApi": "rimraf Schema",
