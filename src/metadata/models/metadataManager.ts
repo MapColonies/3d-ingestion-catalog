@@ -1,15 +1,22 @@
-import { inject, injectable } from 'tsyringe';
-import { Repository } from 'typeorm';
 import { Logger } from '@map-colonies/js-logger';
+import { inject, injectable } from 'tsyringe';
+import httpStatus from 'http-status-codes';
+import { Repository } from 'typeorm';
+import * as turf from '@turf/turf';
+import wkt from 'terraformer-wkt-parser';
 import { SERVICES } from '../../common/constants';
-import { IUpdateMetadata, IUpdateStatus } from '../../common/dataModels/records';
-import { EntityNotFoundError, IdAlreadyExistsError } from './errors';
-import { Metadata } from './generated';
+import { IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
+import { ValidationManager } from '../../validator/validationManager';
+import { formatStrings, linksToString } from '../../common/utils/format';
+import { AppError } from '../../common/appError';
+import { IPayload } from '../../common/types';
+import { Metadata } from '../../DAL/entities/metadata';
 
 @injectable()
 export class MetadataManager {
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
+    @inject(ValidationManager) private readonly validator: ValidationManager,
     @inject(SERVICES.LOGGER) private readonly logger: Logger
   ) {}
 
@@ -21,54 +28,73 @@ export class MetadataManager {
       return records;
     } catch (error) {
       this.logger.error({ msg: 'Failed to get all records', error });
-      throw error;
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
-  public async getRecord(identifier: string): Promise<Metadata | undefined> {
+  public async getRecord(identifier: string): Promise<Metadata> {
     this.logger.debug({ msg: 'Get metadata of record', modelId: identifier });
     try {
       const record = await this.repository.findOne(identifier);
+      if (record === undefined) {
+        throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
+      }
       this.logger.info({ msg: 'Got metadata ', modelId: identifier });
       return record;
     } catch (error) {
       this.logger.error({ msg: 'Failed to get metadata', modelId: identifier, error });
-      throw error;
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
-  public async createRecord(payload: Metadata): Promise<Metadata> {
+  public async createRecord(payload: IPayload): Promise<Metadata> {
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
-      const record: Metadata | undefined = await this.repository.findOne(payload.id);
-      if (record !== undefined) {
-        this.logger.error({ msg: 'duplicate identifier', modelId: payload.id });
-        throw new IdAlreadyExistsError(`Record with identifier: ${payload.id} already exists!`);
+      payload = formatStrings<IPayload>(payload);
+      const isValid = await this.validator.validatePost(payload);
+      if (typeof isValid === 'string') {
+        throw new AppError('BadValues', httpStatus.BAD_REQUEST, isValid, true);
       }
-      const newMetadata: Metadata = await this.repository.save(payload);
+      const metadata = await this.setPostPayloadToEntity(payload);
+      const newRecord: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Saved new record', modelId: payload.id, modelName: payload.productName, payload });
-      return newMetadata;
+      return newRecord;
     } catch (error) {
       this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, modelName: payload.productName, error, payload });
-      throw error;
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
-  public async updatePartialRecord(identifier: string, payload: IUpdateMetadata): Promise<Metadata> {
+  public async updateRecord(identifier: string, payload: IUpdatePayload): Promise<Metadata> {
     this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, modelName: payload.productName, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
         this.logger.error({ msg: 'model identifier not found', modelId: identifier, modelName: payload.productName });
-        throw new EntityNotFoundError(`Metadata record ${identifier} does not exist`);
+        throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
-      const metadata: Metadata = { ...record, ...payload };
+      payload = formatStrings<IUpdatePayload>(payload);
+      const isValid = await this.validator.validatePatch(identifier, payload);
+      if (typeof isValid === 'string') {
+        throw new AppError('BadValues', httpStatus.BAD_REQUEST, isValid, true);
+      }
+      const updateMetadata: IUpdateMetadata = this.setPatchPayloadToEntity(payload);
+      const metadata: Metadata = { ...record, ...updateMetadata };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Updated record', modelId: identifier, modelName: payload.productName, payload });
       return updatedMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, modelName: payload.productName, error, payload });
-      throw error;
+      this.logger.error({ msg: 'Error saving update of record', modelId: identifier, modelName: payload.productName, error, payload });
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
@@ -79,7 +105,7 @@ export class MetadataManager {
       this.logger.info({ msg: 'Deleted record', modelId: identifier });
     } catch (error) {
       this.logger.error({ msg: 'Failed to delete record', modelId: identifier, error });
-      throw error;
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
@@ -89,15 +115,18 @@ export class MetadataManager {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
         this.logger.error({ msg: 'model identifier not found', modelId: identifier });
-        throw new EntityNotFoundError(`Metadata record ${identifier} does not exist`);
+        throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
       const metadata: Metadata = { ...record, productStatus: payload.productStatus };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Updated record', modelId: identifier, payload });
       return updatedMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'error saving update of record ', modelId: identifier, payload, error });
-      throw error;
+      this.logger.error({ msg: 'Error saving update of record', modelId: identifier, payload, error });
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
@@ -105,11 +134,45 @@ export class MetadataManager {
     this.logger.debug({ msg: 'Get last product version', modelId: identifier });
     try {
       const metadata: Metadata | undefined = await this.repository.findOne({ where: { productId: identifier }, order: { productVersion: 'DESC' } });
-      this.logger.info({ msg: 'Got latest model version', modelId: identifier, version: metadata?.productVersion });
-      return metadata !== undefined ? metadata.productVersion : 0;
+      const version = metadata !== undefined ? metadata.productVersion : 0;
+      this.logger.info({ msg: 'Got latest model version', modelId: identifier, version });
+      return version;
     } catch (error) {
       this.logger.error({ msg: 'Error in retrieving latest model version', modelId: identifier, error });
-      throw error;
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
+  }
+
+  private async setPostPayloadToEntity(payload: IPayload): Promise<Metadata> {
+    const entity: Metadata = new Metadata();
+    Object.assign(entity, payload);
+
+    entity.id = payload.id;
+    if (payload.productId != undefined) {
+      entity.productVersion = (await this.findLastVersion(payload.productId)) + 1;
+    } else {
+      entity.productVersion = 1;
+      entity.productId = payload.id;
+    }
+
+    if (payload.footprint !== undefined) {
+      entity.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
+      entity.productBoundingBox = turf.bbox(payload.footprint).toString();
+    }
+
+    entity.sensors = payload.sensors!.join(', ');
+    entity.region = payload.region!.join(', ');
+    entity.links = linksToString(payload.links);
+
+    return entity;
+  }
+
+  private setPatchPayloadToEntity(payload: IUpdatePayload): IUpdateMetadata {
+    const metadata: IUpdateMetadata = {
+      ...(payload as IUpdate),
+      ...(payload.sensors && { sensors: payload.sensors.join(', ') }),
+    };
+
+    return metadata;
   }
 }

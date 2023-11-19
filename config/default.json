@@ -8,7 +8,7 @@
   "telemetry": {
     "logger": {
       "level": "debug",
-      "prettyPrint": true
+      "prettyPrint": false
     }
   },
   "server": {
@@ -26,20 +26,6 @@
     }
   },
   "db": {
-    "type": "postgres",
-    "host": "127.0.0.1",
-    "port": 5432,
-    "username": "postgres",
-    "password": "postgres",
-    "database": "3d-catalog-manager-dev",
-    "enableSslAuth": false,
-    "sslPaths": {
-      "ca": "",
-      "key": "",
-      "cert": ""
-    }
-  },
-  "test": {
     "type": "postgres",
     "host": "127.0.0.1",
     "port": 5432,

@@ -53,7 +53,7 @@ paths:
         5XX:
           $ref: '#/components/responses/unexpectedError'
     patch:
-      operationId: updatePartialRecord
+      operationId: updateRecord
       summary: Update partial 3d model metadata record fields
       tags:
         - metadata

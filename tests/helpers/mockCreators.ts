@@ -7,10 +7,14 @@ export const configMock = {
   has: jest.fn(),
 };
 
-export const valueValidationMock = {
-  checkValuesValidation: jest.fn(),
+export const validationManagerMock = {
+  validatePost: jest.fn(),
+  validatePatch: jest.fn(),
 };
 
-export const updateValidatorMock = {
-  checkUpdateValues: jest.fn(),
+export const repositoryMock = {
+  findOne: jest.fn(),
+  find: jest.fn(),
+  save: jest.fn(),
+  delete: jest.fn(),
 };

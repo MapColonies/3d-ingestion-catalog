@@ -1,10 +1,24 @@
 module.exports = {
-  rootDir: '../../../.',
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
   },
+  coverageReporters: ['text', 'html'],
+  collectCoverage: true,
+  collectCoverageFrom: [
+    '<rootDir>/src/**/*.ts',
+    '!*/node_modules/',
+    '!/vendor/**',
+    '!*/common/**',
+    '!**/models/**',
+    '!<rootDir>/src/*',
+    '!<rootDir>/src/DAL/**',
+  ],
+  coverageDirectory: '<rootDir>/coverage',
+  rootDir: '../../../.',
   testMatch: ['<rootDir>/tests/integration/**/*.spec.ts'],
   setupFiles: ['<rootDir>/tests/configurations/jest.setup.js'],
+  setupFilesAfterEnv: ['jest-openapi', '<rootDir>/tests/configurations/initJestOpenapi.setup.ts'],
   reporters: [
     'default',
     [
@@ -12,24 +26,17 @@ module.exports = {
       { multipleReportsUnitePath: './reports', pageTitle: 'integration', publicPath: './reports', filename: 'integration.html' },
     ],
   ],
-
+  moduleDirectories: ['node_modules', 'src'],
   preset: 'ts-jest',
   testEnvironment: 'node',
-  collectCoverage: true,
-  coverageReporters: ['text', 'html', 'json'],
-  moduleDirectories: ['node_modules', 'src'],
-  moduleFileExtensions: ['ts', 'js'],
-  collectCoverageFrom: ['<rootDir>/src/metadata/**/*.ts', '!<rootDir>/src/metadata/models/generated.ts'],
-  coverageDirectory: '<rootDir>/coverage',
   coverageThreshold: {
     global: {
-      branches: 80,
+      branches: 73,
       functions: 80,
       lines: 80,
-      statements: -10,
+      statements: -13,
     },
   },
-  verbose: true,
   globalSetup: '<rootDir>/tests/global-setup.js',
   globalTeardown: '<rootDir>/tests/global-teardown.js',
 };

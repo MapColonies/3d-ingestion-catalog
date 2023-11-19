@@ -1,10 +1,9 @@
 import mockAxios from 'jest-mock-axios';
 import config from 'config';
 import jsLogger from '@map-colonies/js-logger';
-import { LookupTablesCall } from '../../../../../../src/externalServices/lookUpTables/requestCall';
-import { ILookupOption } from '../../../../../../src/common/interfaces';
-import { createLookupOptions } from '../../../../../helpers/helpers';
-import { LookupTablesConfig } from '../../../../../../src/externalServices/lookUpTables/interfaces';
+import { LookupTablesCall } from '../../../../src/externalServices/lookupTables/requestCall';
+import { createLookupOptions } from '../../../helpers/helpers';
+import { ILookupOption, LookupTablesConfig } from '../../../../src/externalServices/lookupTables/interfaces';
 
 describe('lookupTablesCall', () => {
   let lookupTables: LookupTablesCall;
@@ -19,7 +18,6 @@ describe('lookupTablesCall', () => {
   describe('getClassifications Function', () => {
     it('Get the classification without errors', async () => {
       const lookupTablesConfig = config.get<LookupTablesConfig>('lookupTables');
-
       const lookupOptions: ILookupOption[] = createLookupOptions(2);
       const expected = [lookupOptions[0].value, lookupOptions[1].value];
       mockAxios.get.mockResolvedValue({ data: lookupOptions });
