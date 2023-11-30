@@ -2,6 +2,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
 import { SERVICES } from '../../common/constants';
@@ -11,13 +12,16 @@ import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
 import { Metadata } from '../../DAL/entities/metadata';
+import { StoreTriggerCall } from '../../externalServices/storeTrigger/requestCall';
+import { StoreTriggerResponse } from '../../externalServices/storeTrigger/interfaces';
 
 @injectable()
 export class MetadataManager {
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
     @inject(ValidationManager) private readonly validator: ValidationManager,
-    @inject(SERVICES.LOGGER) private readonly logger: Logger
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    private readonly storeTrigger: StoreTriggerCall
   ) {}
 
   public async getAll(): Promise<Metadata[] | undefined> {
@@ -107,6 +111,25 @@ export class MetadataManager {
       this.logger.error({ msg: 'Failed to delete record', modelId: identifier, error });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
+  }
+
+  public async startDeleteRecord(identifier: string): Promise<StoreTriggerResponse> {
+    this.logger.debug({ msg: 'delete record', modelId: identifier})
+    try {
+      const record: Metadata | undefined = await this.repository.findOne(identifier);
+      if (record === undefined)  {
+        this.logger.error({ msg: 'model identifier not found', modelId:identifier });
+        throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
+      }
+      if (record.productStatus != 'UNPUBLISHED') {
+        this.logger.error({ msg: 'model with status PUBLISHED cannot be deleted', modelId: identifier })
+      }
+
+
+      
+
+    }
+
   }
 
   public async updateStatusRecord(identifier: string, payload: IUpdateStatus): Promise<Metadata> {

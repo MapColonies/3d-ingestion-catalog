@@ -62,5 +62,9 @@
   "lookupTables": {
     "url": "LOOKUP_TABLES_URL",
     "subUrl": "LOOKUP_TABLES_SUB_URL"
+  },
+  "storeTrigger": {
+    "url": "STORE_TRIGGER_URL",
+    "subUrl": "STORE_TRIGGER_URL"
   }
 }

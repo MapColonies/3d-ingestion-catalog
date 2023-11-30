@@ -11,6 +11,10 @@
       "ca": "",
       "key": "",
       "cert": ""
+    },
+    "storeTrigger": {
+      "url": "http://127.0.0.1:8081",
+      "subUrl": "catalog"
     }
   }
 }

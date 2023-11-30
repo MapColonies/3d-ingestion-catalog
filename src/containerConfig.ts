@@ -10,6 +10,8 @@ import { Metadata } from './DAL/entities/metadata';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { METADATA_ROUTER_SYMBOL, metadataRouterFactory } from './metadata/routes/metadataRouter';
 import { ConnectionManager } from './DAL/connectionManager';
+import { StoreTriggerCall } from './externalServices/storeTrigger/requestCall';
+import { LookupTablesCall } from './externalServices/lookupTables/requestCall';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -39,6 +41,8 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: METADATA_ROUTER_SYMBOL, provider: { useFactory: metadataRouterFactory } },
     { token: SERVICES.HEALTH_CHECK, provider: { useValue: database.healthCheck } },
     { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repository } },
+    { token: SERVICES.STORE_TRIGGER, provider: { useClass: StoreTriggerCall } },
+    { token: SERVICES.LOOKUP_TABLES, provider: { useClass: LookupTablesCall } },
     {
       token: 'onSignal',
       provider: {

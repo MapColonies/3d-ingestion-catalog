@@ -28,6 +28,12 @@ env:
   metrics:
     enabled: false
     url: 'http://localhost:55681/v1/metrics'
+storeTrigger:
+  url: https://startDelete-services-store-trigger-route-3d-dev.apps.j1lk3njp.eastus.aroapp.io/
+  subUrl: startDelete
+lookupTables:
+  url: https://lookupTable/
+  subUrl: lookupData
 resources:
   enabled: true
   value:

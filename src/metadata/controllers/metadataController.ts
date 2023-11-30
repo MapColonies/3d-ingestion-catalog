@@ -6,8 +6,9 @@ import { injectable, inject } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../../DAL/entities/metadata';
-import { IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/interfaces';
+import { IUpdatePayload, IUpdateStatus, MetadataParams, Payload } from '../../common/interfaces';
 import { IPayload } from '../../common/types';
+import { StoreTriggerResponse } from '../../externalServices/storeTrigger/interfaces';
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
@@ -15,7 +16,7 @@ type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
 type UpdatePartialRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdatePayload>;
 type DeleteRequestHandler = RequestHandler<MetadataParams>;
 type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdateStatus>;
-
+// type CreateRequestHandler = RequestHandler<undefined, StoreTriggerResponse, Payload>;
 @injectable()
 export class MetadataController {
   private readonly createdResourceCounter: BoundCounter;
@@ -87,6 +88,8 @@ export class MetadataController {
       return next(error);
     }
   };
+
+  public startDelete;
 
   public updateStatus: UpdateStatusRequestHandler = async (req, res, next) => {
     try {
