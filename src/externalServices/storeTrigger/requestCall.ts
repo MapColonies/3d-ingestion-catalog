@@ -17,7 +17,7 @@ export class StoreTriggerCall {
     this.logger.debug({
       msg: 'got a request for a new flow',
       modelId: payload.modelId,
-      modelLink: payload.
+      modelLink: payload.modelLink,
     });
     const response = await axios.post<StoreTriggerResponse>(`${this.storeTrigger.url}/${this.storeTrigger.subUrl}`, payload);
     this.logger.info({

@@ -12,11 +12,11 @@ import { StoreTriggerResponse } from '../../externalServices/storeTrigger/interf
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
+type DeleteModelHandler = RequestHandler<string, StoreTriggerResponse, Payload>;
 type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
 type UpdatePartialRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdatePayload>;
 type DeleteRequestHandler = RequestHandler<MetadataParams>;
 type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdateStatus>;
-// type CreateRequestHandler = RequestHandler<undefined, StoreTriggerResponse, Payload>;
 @injectable()
 export class MetadataController {
   private readonly createdResourceCounter: BoundCounter;
@@ -78,6 +78,17 @@ export class MetadataController {
     }
   };
 
+  public startDelete: DeleteModelHandler = async (req, res, next) => {
+    try {
+      const identifier: string = req.params;
+      await this.manager.startDeleteRecord(identifier);
+      return res.sendStatus(httpStatus.NO_CONTENT);
+    } catch (error) {
+      this.logger.error({ msg: `Couldn't delete a record`, error });
+      return next(error);
+    }
+  };
+
   public delete: DeleteRequestHandler = async (req, res, next) => {
     try {
       const { identifier } = req.params;
@@ -88,8 +99,6 @@ export class MetadataController {
       return next(error);
     }
   };
-
-  public startDelete;
 
   public updateStatus: UpdateStatusRequestHandler = async (req, res, next) => {
     try {

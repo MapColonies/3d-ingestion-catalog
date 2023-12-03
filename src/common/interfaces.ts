@@ -1,6 +1,5 @@
 import { RecordStatus } from '@map-colonies/mc-model-types';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import { Metadata } from '../DAL/entities/metadata';
 
 export interface IServerConfig {
   port: string;
@@ -58,6 +57,11 @@ export interface IUpdateMetadata extends IUpdate {
 
 export interface IUpdateStatus {
   productStatus: RecordStatus;
+}
+
+export interface Payload {
+  identifier: string;
+  modelLink: string;
 }
 
 export interface DeleteRequest {

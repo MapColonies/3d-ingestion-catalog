@@ -2,11 +2,11 @@ import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
-import { v4 as uuid } from 'uuid';
 import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
+import { RecordStatus } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../../common/constants';
-import { IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
+import { DeleteRequest, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
 import { ValidationManager } from '../../validator/validationManager';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
@@ -21,7 +21,7 @@ export class MetadataManager {
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
     @inject(ValidationManager) private readonly validator: ValidationManager,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    private readonly storeTrigger: StoreTriggerCall
+    @inject(StoreTriggerCall) private readonly storeTrigger: StoreTriggerCall
   ) {}
 
   public async getAll(): Promise<Metadata[] | undefined> {
@@ -114,22 +114,41 @@ export class MetadataManager {
   }
 
   public async startDeleteRecord(identifier: string): Promise<StoreTriggerResponse> {
-    this.logger.debug({ msg: 'delete record', modelId: identifier})
+    this.logger.debug({ msg: 'delete record', modelId: identifier });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
-      if (record === undefined)  {
-        this.logger.error({ msg: 'model identifier not found', modelId:identifier });
+      if (record === undefined) {
+        this.logger.error({ msg: 'model identifier not found', modelId: identifier });
         throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
-      if (record.productStatus != 'UNPUBLISHED') {
-        this.logger.error({ msg: 'model with status PUBLISHED cannot be deleted', modelId: identifier })
+      if (record.productStatus != RecordStatus.UNPUBLISHED) {
+        this.logger.error({ msg: 'model with status PUBLISHED cannot be deleted', modelId: identifier });
+        throw new AppError(
+          'BAD_REQUEST',
+          httpStatus.BAD_REQUEST,
+          ` Model ${record.producerName} is PUBLISHED. The model must be UNPUBLISHED to be deleted!`,
+          true
+        );
       }
-
-
-      
-
+      this.logger.info({ msg: 'starting deleting record', modelId: identifier, modelName: record.producerName });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
     }
-
+    const record: Metadata = await this.repository.findOneOrFail(identifier);
+    const link: string = record.links.split(',,3D_LAYER,')[0];
+    const request: DeleteRequest = {
+      modelId: identifier,
+      modelLink: link,
+    };
+    try {
+      const response: StoreTriggerResponse = await this.storeTrigger.createFlow(request);
+      return response;
+    } catch (error) {
+      this.logger.error({ msg: 'Error in creating flow', identifier, modelName: record.producerName, error, record });
+      throw new AppError('', httpStatus.INTERNAL_SERVER_ERROR, 'store-trigger service is not available', true);
+    }
   }
 
   public async updateStatusRecord(identifier: string, payload: IUpdateStatus): Promise<Metadata> {

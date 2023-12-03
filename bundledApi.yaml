@@ -85,6 +85,19 @@ paths:
           description: No Content
         5XX:
           $ref: '#/components/responses/unexpectedError'
+  /identifier:
+    delete:
+      operationId: startDeleteRecord
+      summary: Start of delete specific 3d model metadata record by record identifier
+      tags:
+        - metadata
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        '204':
+          description: No Content
+        5XX:
+          $ref:  '#/components/responses/unexpectedError'
   /metadata/status/{identifier}:
     patch:
       operationId: publishRecord
