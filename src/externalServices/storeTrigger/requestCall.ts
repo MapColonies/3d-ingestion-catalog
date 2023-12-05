@@ -24,6 +24,8 @@ export class StoreTriggerCall {
       msg: 'sent to store-trigger successfully',
       jobId: response.data.jobID,
       modelId: payload.modelId,
+      modelLink: payload.modelLink,
+      payload,
     });
     return response.data;
   }

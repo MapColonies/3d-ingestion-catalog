@@ -126,7 +126,7 @@ export class MetadataManager {
         throw new AppError(
           'BAD_REQUEST',
           httpStatus.BAD_REQUEST,
-          ` Model ${record.producerName} is PUBLISHED. The model must be UNPUBLISHED to be deleted!`,
+          ` Model ${record.productName} is PUBLISHED. The model must be UNPUBLISHED to be deleted!`,
           true
         );
       }
@@ -136,18 +136,24 @@ export class MetadataManager {
         throw error;
       }
     }
-    const record: Metadata = await this.repository.findOneOrFail(identifier);
-    const link: string = record.links.split(',,3D_LAYER,')[0];
-    const request: DeleteRequest = {
-      modelId: identifier,
-      modelLink: link,
-    };
-    try {
-      const response: StoreTriggerResponse = await this.storeTrigger.createFlow(request);
-      return response;
-    } catch (error) {
-      this.logger.error({ msg: 'Error in creating flow', identifier, modelName: record.producerName, error, record });
-      throw new AppError('', httpStatus.INTERNAL_SERVER_ERROR, 'store-trigger service is not available', true);
+    const record: Metadata | undefined = await this.repository.findOne(identifier);
+    if (record === undefined) {
+      this.logger.error({ msg: 'model identifier not found', modelId: identifier });
+      throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
+    } else {
+      const link: string = record.links.split(',,3D_LAYER,')[0];
+      const request: DeleteRequest = {
+        modelId: identifier,
+        modelLink: link,
+      };
+      try {
+        const response: StoreTriggerResponse = await this.storeTrigger.createFlow(request);
+        console.log(response)
+        return response;
+      } catch (error) {
+        this.logger.error({ msg: 'Error in creating flow', identifier, modelName: record.producerName, error, record });
+        throw new AppError('', httpStatus.INTERNAL_SERVER_ERROR, 'store-trigger service is not available', true);
+      }
     }
   }
 

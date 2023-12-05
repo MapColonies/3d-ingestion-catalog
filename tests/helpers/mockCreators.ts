@@ -18,3 +18,7 @@ export const repositoryMock = {
   save: jest.fn(),
   delete: jest.fn(),
 };
+
+export const storeTriggerMock = {
+  createFlow: jest.fn(),
+};

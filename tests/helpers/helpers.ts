@@ -2,7 +2,7 @@ import RandExp from 'randexp';
 import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-types';
 import { randBetweenDate, randNumber, randPastDate, randSentence, randUuid, randWord } from '@ngneat/falso';
 import { Metadata } from '../../src/DAL/entities/metadata';
-import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
+import { DeleteRequest, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
 import { linksToString } from '../../src/common/utils/format';
 import { ILookupOption } from '../../src/externalServices/lookupTables/interfaces';
@@ -202,3 +202,10 @@ export const createLookupOption = (): ILookupOption => {
     translationCode: randWord(),
   };
 };
+
+export const createFakeDeleteRequest = (modelLink: string): DeleteRequest => {
+  return {
+    modelId: createUuid(),
+    modelLink
+  };
+}

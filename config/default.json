@@ -12,7 +12,7 @@
     }
   },
   "server": {
-    "port": "8082",
+    "port": "8086",
     "request": {
       "payload": {
         "limit": "1mb"

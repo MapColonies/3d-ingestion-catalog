@@ -6,13 +6,13 @@ import { injectable, inject } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../../DAL/entities/metadata';
-import { IUpdatePayload, IUpdateStatus, MetadataParams, Payload } from '../../common/interfaces';
+import { IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/interfaces';
 import { IPayload } from '../../common/types';
 import { StoreTriggerResponse } from '../../externalServices/storeTrigger/interfaces';
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
-type DeleteModelHandler = RequestHandler<string, StoreTriggerResponse, Payload>;
+type DeleteModelHandler = RequestHandler<MetadataParams, StoreTriggerResponse>;
 type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
 type UpdatePartialRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdatePayload>;
 type DeleteRequestHandler = RequestHandler<MetadataParams>;
@@ -80,9 +80,9 @@ export class MetadataController {
 
   public startDelete: DeleteModelHandler = async (req, res, next) => {
     try {
-      const identifier: string = req.params;
-      await this.manager.startDeleteRecord(identifier);
-      return res.sendStatus(httpStatus.NO_CONTENT);
+      const { identifier } = req.params;
+      const response = await this.manager.startDeleteRecord(identifier);
+      return res.sendStatus(httpStatus.OK).json(response);
     } catch (error) {
       this.logger.error({ msg: `Couldn't delete a record`, error });
       return next(error);
