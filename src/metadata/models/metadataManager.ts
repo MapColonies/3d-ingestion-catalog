@@ -4,9 +4,9 @@ import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
 import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
-import { RecordStatus } from '@map-colonies/mc-model-types';
+import { Link, RecordStatus } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../../common/constants';
-import { DeleteRequest, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
+import { DeleteRequest, IConfig, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus} from '../../common/interfaces';
 import { ValidationManager } from '../../validator/validationManager';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
@@ -17,12 +17,16 @@ import { StoreTriggerResponse } from '../../externalServices/storeTrigger/interf
 
 @injectable()
 export class MetadataManager {
+  private readonly protocolLink: Link;
+
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
     @inject(ValidationManager) private readonly validator: ValidationManager,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(StoreTriggerCall) private readonly storeTrigger: StoreTriggerCall
-  ) {}
+    @inject(StoreTriggerCall) private readonly storeTrigger: StoreTriggerCall,
+    @inject(SERVICES.CONFIG) private readonly config: IConfig) {
+      this.protocolLink = this.config.get<Link>('link.protocol');
+  }
 
   public async getAll(): Promise<Metadata[] | undefined> {
     this.logger.debug({ msg: 'Get all models metadata' });
@@ -130,7 +134,7 @@ export class MetadataManager {
           true
         );
       }
-      this.logger.info({ msg: 'starting deleting record', modelId: identifier, modelName: record.producerName });
+      this.logger.info({ msg: 'starting deleting record', modelId: identifier, modelName: record.productName });
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -141,14 +145,14 @@ export class MetadataManager {
       this.logger.error({ msg: 'model identifier not found', modelId: identifier });
       throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
     } else {
-      const link: string = record.links.split(',,3D_LAYER,')[0];
+      const link: string = record.links.split(`,,${this.protocolLink.protocol},`)[0];
       const request: DeleteRequest = {
         modelId: identifier,
         modelLink: link,
       };
       try {
         const response: StoreTriggerResponse = await this.storeTrigger.createFlow(request);
-        console.log(response)
+        console.log(response);
         return response;
       } catch (error) {
         this.logger.error({ msg: 'Error in creating flow', identifier, modelName: record.producerName, error, record });

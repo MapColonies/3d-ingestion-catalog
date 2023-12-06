@@ -66,5 +66,8 @@
   "storeTrigger": {
     "url": "STORE_TRIGGER_URL",
     "subUrl": "STORE_TRIGGER_URL"
+  },
+  "link": {
+    "protocol": "LINK_PROTOCOL"
   }
 }

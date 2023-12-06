@@ -9,27 +9,36 @@ import { StoreTriggerConfig, StoreTriggerResponse } from '../../../../src/extern
 let storeTrigger: StoreTriggerCall;
 
 describe('StoreTriggerCall', () => {
-    beforeEach(() => {
-        storeTrigger = new StoreTriggerCall(config, jsLogger({ enabled: false }));
+  beforeEach(() => {
+    storeTrigger = new StoreTriggerCall(config, jsLogger({ enabled: false }));
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('createFlow Function', () => {
+    it('resolves without errors', async () => {
+      const storeTriggerConfig = config.get<StoreTriggerConfig>('storeTrigger');
+      const request = createFakeDeleteRequest('string,string,string,https://9x[Nx^j*.Y#%XQLe=PcDM;ZRQ<`Fu;;RY/ WVdwB');
+      const expected: StoreTriggerResponse = {
+        jobID: createUuid(),
+        status: OperationStatus.IN_PROGRESS,
+      };
+      mockAxios.post.mockResolvedValue({ data: expected });
+
+      const created = await storeTrigger.createFlow(request);
+
+      expect(mockAxios.post).toHaveBeenCalledWith(`${storeTriggerConfig.url}/${storeTriggerConfig.subUrl}`, request);
+      expect(created).toMatchObject(expected);
     });
-    afterEach(() => {
-        jest.clearAllMocks();
+
+    it('rejects if  service is not available', async() => {
+        const request = createFakeDeleteRequest('string,string,string,https://9x[Nx^j*.Y#%XQLe=PcDM;ZRQ<`Fu;;RY/ WVdwB');
+        mockAxios.post.mockRejectedValue(new Error('store-trigger is not available'));
+
+        const createPromise = storeTrigger.createFlow(request);
+
+        await expect(createPromise).rejects.toThrow('store-trigger is not available');
     });
-
-    describe('createFlow Function', () => {
-        it('resolves without errors', async () => {
-            const storeTriggerConfig = config.get<StoreTriggerConfig>('storeTrigger');
-            const request = createFakeDeleteRequest('string,string,string,https://9x[Nx^j*.Y#%XQLe=PcDM;ZRQ<`Fu;;RY/ WVdwB');
-            const expected: StoreTriggerResponse = {
-                jobID: createUuid(),
-                status: OperationStatus.IN_PROGRESS
-            };
-            mockAxios.post.mockResolvedValue({ data: expected });
-
-            const created = await storeTrigger.createFlow(request);
-
-            expect(mockAxios.post).toHaveBeenCalledWith(`${storeTriggerConfig.url}/${storeTriggerConfig.subUrl}`, request);
-            expect(created).toMatchObject(expected);
-        });
-    })
-})
+  });
+});

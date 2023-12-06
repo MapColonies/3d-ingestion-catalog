@@ -208,4 +208,4 @@ export const createFakeDeleteRequest = (modelLink: string): DeleteRequest => {
     modelId: createUuid(),
     modelLink
   };
-}
+};
