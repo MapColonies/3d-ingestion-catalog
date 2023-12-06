@@ -8,14 +8,15 @@ import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../../DAL/entities/metadata';
 import { IUpdatePayload, IUpdateStatus, MetadataParams } from '../../common/interfaces';
 import { IPayload } from '../../common/types';
+import { StoreTriggerResponse } from '../../externalServices/storeTrigger/interfaces';
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
+type DeleteModelHandler = RequestHandler<MetadataParams, StoreTriggerResponse>;
 type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
 type UpdatePartialRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdatePayload>;
 type DeleteRequestHandler = RequestHandler<MetadataParams>;
 type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdateStatus>;
-
 @injectable()
 export class MetadataController {
   private readonly createdResourceCounter: BoundCounter;
@@ -73,6 +74,17 @@ export class MetadataController {
       return res.status(httpStatus.OK).json(updatedPartialMetadata);
     } catch (error) {
       this.logger.error({ msg: `Couldn't patch record`, error });
+      return next(error);
+    }
+  };
+
+  public startDelete: DeleteModelHandler = async (req, res, next) => {
+    try {
+      const { identifier } = req.params;
+      const response = await this.manager.startDeleteRecord(identifier);
+      return res.sendStatus(httpStatus.OK).json(response);
+    } catch (error) {
+      this.logger.error({ msg: `Couldn't delete a record`, error });
       return next(error);
     }
   };

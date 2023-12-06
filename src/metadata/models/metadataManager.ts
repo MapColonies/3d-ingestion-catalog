@@ -4,21 +4,29 @@ import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
 import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
+import { Link, RecordStatus } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../../common/constants';
-import { IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
+import { DeleteRequest, IConfig, IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus} from '../../common/interfaces';
 import { ValidationManager } from '../../validator/validationManager';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
 import { Metadata } from '../../DAL/entities/metadata';
+import { StoreTriggerCall } from '../../externalServices/storeTrigger/requestCall';
+import { StoreTriggerResponse } from '../../externalServices/storeTrigger/interfaces';
 
 @injectable()
 export class MetadataManager {
+  private readonly protocolLink: Link;
+
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
     @inject(ValidationManager) private readonly validator: ValidationManager,
-    @inject(SERVICES.LOGGER) private readonly logger: Logger
-  ) {}
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    @inject(StoreTriggerCall) private readonly storeTrigger: StoreTriggerCall,
+    @inject(SERVICES.CONFIG) private readonly config: IConfig) {
+      this.protocolLink = this.config.get<Link>('link.protocol');
+  }
 
   public async getAll(): Promise<Metadata[] | undefined> {
     this.logger.debug({ msg: 'Get all models metadata' });
@@ -106,6 +114,50 @@ export class MetadataManager {
     } catch (error) {
       this.logger.error({ msg: 'Failed to delete record', modelId: identifier, error });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
+    }
+  }
+
+  public async startDeleteRecord(identifier: string): Promise<StoreTriggerResponse> {
+    this.logger.debug({ msg: 'delete record', modelId: identifier });
+    try {
+      const record: Metadata | undefined = await this.repository.findOne(identifier);
+      if (record === undefined) {
+        this.logger.error({ msg: 'model identifier not found', modelId: identifier });
+        throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
+      }
+      if (record.productStatus != RecordStatus.UNPUBLISHED) {
+        this.logger.error({ msg: 'model with status PUBLISHED cannot be deleted', modelId: identifier });
+        throw new AppError(
+          'BAD_REQUEST',
+          httpStatus.BAD_REQUEST,
+          ` Model ${record.productName} is PUBLISHED. The model must be UNPUBLISHED to be deleted!`,
+          true
+        );
+      }
+      this.logger.info({ msg: 'starting deleting record', modelId: identifier, modelName: record.productName });
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+    }
+    const record: Metadata | undefined = await this.repository.findOne(identifier);
+    if (record === undefined) {
+      this.logger.error({ msg: 'model identifier not found', modelId: identifier });
+      throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
+    } else {
+      const link: string = record.links.split(`,,${this.protocolLink.protocol},`)[0];
+      const request: DeleteRequest = {
+        modelId: identifier,
+        modelLink: link,
+      };
+      try {
+        const response: StoreTriggerResponse = await this.storeTrigger.createFlow(request);
+        console.log(response);
+        return response;
+      } catch (error) {
+        this.logger.error({ msg: 'Error in creating flow', identifier, modelName: record.producerName, error, record });
+        throw new AppError('', httpStatus.INTERNAL_SERVER_ERROR, 'store-trigger service is not available', true);
+      }
     }
   }
 

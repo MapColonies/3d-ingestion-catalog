@@ -1,18 +1,17 @@
 import jsLogger from '@map-colonies/js-logger';
 import { QueryFailedError } from 'typeorm';
-import httpStatus from 'http-status-codes';
+import httpStatus, { StatusCodes } from 'http-status-codes';
 import { MetadataManager } from '../../../../src/metadata/models/metadataManager';
-import { createUuid, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../../helpers/helpers';
-import { repositoryMock, validationManagerMock } from '../../../helpers/mockCreators';
+import { createUuid, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus} from '../../../helpers/helpers';
+import { repositoryMock, validationManagerMock, storeTriggerMock, configMock } from '../../../helpers/mockCreators';
 import { AppError } from '../../../../src/common/appError';
 
 let metadataManager: MetadataManager;
 
 describe('MetadataManager', () => {
   beforeEach(() => {
-    metadataManager = new MetadataManager(repositoryMock as never, validationManagerMock as never, jsLogger({ enabled: false }));
+    metadataManager = new MetadataManager(repositoryMock as never, validationManagerMock as never, jsLogger({ enabled: false }), storeTriggerMock as never , configMock as never);
   });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -189,6 +188,21 @@ describe('MetadataManager', () => {
     });
   });
 
+  describe('startDelete tests', () => {
+    it('should send a delete request to store_trigger successfully', async() => {
+      const metadata = createFakeMetadata();
+      repositoryMock.findOne.mockResolvedValue(metadata.id);
+      storeTriggerMock.createFlow.mockResolvedValue(metadata);
+      const response = await metadataManager.startDeleteRecord(metadata.productId);
+      
+      expect(response).toBe(StatusCodes.OK);
+    });
+
+    it('should throw NOT_FOUND error when record identifier is not fount', async() => {
+
+    })
+  })
+
   describe('publishRecord tests', () => {
     it('resolves without errors if id exists', async () => {
       const identifier = createUuid();
@@ -251,3 +265,5 @@ describe('MetadataManager', () => {
     });
   });
 });
+
+

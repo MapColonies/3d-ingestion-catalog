@@ -58,3 +58,13 @@ export interface IUpdateMetadata extends IUpdate {
 export interface IUpdateStatus {
   productStatus: RecordStatus;
 }
+
+export interface Payload {
+  identifier: string;
+  modelLink: string;
+}
+
+export interface DeleteRequest {
+  modelId: string;
+  modelLink: string;
+}
