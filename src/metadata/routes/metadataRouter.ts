@@ -8,6 +8,7 @@ const metadataRouterFactory: FactoryFunction<Router> = (dependencyContainer) => 
 
   router.get('/', controller.getAll);
   router.get('/:identifier', controller.get);
+  router.get('/lastVersion/:identifier', controller.findLastVersion);
   router.post('/', controller.post);
   router.patch('/:identifier', controller.patch);
   router.delete('/:identifier', controller.delete);

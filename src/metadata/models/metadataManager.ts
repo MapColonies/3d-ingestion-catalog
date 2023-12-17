@@ -6,7 +6,6 @@ import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
 import { SERVICES } from '../../common/constants';
 import { IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
-import { ValidationManager } from '../../validator/validationManager';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
@@ -16,7 +15,6 @@ import { Metadata } from '../../DAL/entities/metadata';
 export class MetadataManager {
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
-    @inject(ValidationManager) private readonly validator: ValidationManager,
     @inject(SERVICES.LOGGER) private readonly logger: Logger
   ) {}
 
@@ -54,19 +52,12 @@ export class MetadataManager {
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
       payload = formatStrings<IPayload>(payload);
-      const isValid = await this.validator.validatePost(payload);
-      if (typeof isValid === 'string') {
-        throw new AppError('BadValues', httpStatus.BAD_REQUEST, isValid, true);
-      }
       const metadata = await this.setPostPayloadToEntity(payload);
       const newRecord: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Saved new record', modelId: payload.id, modelName: payload.productName, payload });
       return newRecord;
     } catch (error) {
       this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, modelName: payload.productName, error, payload });
-      if (error instanceof AppError) {
-        throw error;
-      }
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
@@ -80,10 +71,6 @@ export class MetadataManager {
         throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
       payload = formatStrings<IUpdatePayload>(payload);
-      const isValid = await this.validator.validatePatch(identifier, payload);
-      if (typeof isValid === 'string') {
-        throw new AppError('BadValues', httpStatus.BAD_REQUEST, isValid, true);
-      }
       const updateMetadata: IUpdateMetadata = this.setPatchPayloadToEntity(payload);
       const metadata: Metadata = { ...record, ...updateMetadata };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
@@ -130,15 +117,15 @@ export class MetadataManager {
     }
   }
 
-  public async findLastVersion(identifier: string): Promise<number> {
-    this.logger.debug({ msg: 'Get last product version', modelId: identifier });
+  public async findLastVersion(productId: string): Promise<number> {
+    this.logger.debug({ msg: 'Get last product version', productId });
     try {
-      const metadata: Metadata | undefined = await this.repository.findOne({ where: { productId: identifier }, order: { productVersion: 'DESC' } });
+      const metadata: Metadata | undefined = await this.repository.findOne({ where: { productId }, order: { productVersion: 'DESC' } });
       const version = metadata !== undefined ? metadata.productVersion : 0;
-      this.logger.info({ msg: 'Got latest model version', modelId: identifier, version });
+      this.logger.info({ msg: 'Got latest model version', modelId: metadata?.id, version });
       return version;
     } catch (error) {
-      this.logger.error({ msg: 'Error in retrieving latest model version', modelId: identifier, error });
+      this.logger.error({ msg: 'Error in retrieving latest model version', productId, error });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }

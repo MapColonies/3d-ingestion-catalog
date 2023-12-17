@@ -37,6 +37,17 @@ paths:
           $ref: '#/components/responses/badRequest'
         5XX:
           $ref: '#/components/responses/unexpectedError'
+  /metadata/lastVersion/{identifier}:
+    get:
+      operationId: findLastVersion
+      summary: Find last version of productID
+      tags:
+        - metadata
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        5XX:
+          $ref: '#/components/responses/unexpectedError'
   /metadata/{identifier}:
     get:
       operationId: getRecord

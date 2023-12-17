@@ -11,6 +11,7 @@ import { IPayload } from '../../common/types';
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
+type FindLastVersionRequestHandler = RequestHandler<MetadataParams, number, number>;
 type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
 type UpdatePartialRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdatePayload>;
 type DeleteRequestHandler = RequestHandler<MetadataParams>;
@@ -49,6 +50,17 @@ export class MetadataController {
       return res.status(httpStatus.OK).json(metadata);
     } catch (error) {
       this.logger.error({ msg: `Couldn't get record`, error });
+      return next(error);
+    }
+  };
+
+  public findLastVersion: FindLastVersionRequestHandler = async (req, res, next) => {
+    const { identifier } = req.params;
+    try {
+      const version: number = await this.manager.findLastVersion(identifier);
+      return res.status(httpStatus.OK).json(version);
+    } catch (error) {
+      this.logger.error({ msg: `Couldn't find last version of productID`, error });
       return next(error);
     }
   };

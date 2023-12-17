@@ -58,9 +58,5 @@
       "cert": "DB_CERT_PATH"
     },
     "database": "DB_NAME"
-  },
-  "lookupTables": {
-    "url": "LOOKUP_TABLES_URL",
-    "subUrl": "LOOKUP_TABLES_SUB_URL"
   }
 }
