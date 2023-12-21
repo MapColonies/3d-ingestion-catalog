@@ -42,7 +42,7 @@ describe('MetadataController', function () {
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
         expect(response.body).toHaveLength(1);
-        const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createResponseWithoutAnyText } = createResponse.body as unknown as Metadata;
+        const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createResponseWithoutAnyText } = createResponse.body as Metadata;
         expect(response.body).toMatchObject([createResponseWithoutAnyText]);
       });
     });
@@ -77,13 +77,13 @@ describe('MetadataController', function () {
       it('should return 200 status code and the metadata record', async function () {
         const payload = createPayload();
         const createResponse = await requestSender.createRecord(payload);
-        const id = (createResponse.body as unknown as Metadata).id;
+        const id = (createResponse.body as Metadata).id;
 
         const response = await requestSender.getRecord(id);
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createResponseWithoutAnyText } = createResponse.body as unknown as Metadata;
+        const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createResponseWithoutAnyText } = createResponse.body as Metadata;
         expect(response.body).toMatchObject(createResponseWithoutAnyText);
       });
     });
@@ -136,7 +136,7 @@ describe('MetadataController', function () {
         const payload = createPayload();
         const createResponse = await requestSender.createRecord(payload);
 
-        const response = await requestSender.findLastVersion((createResponse.body as unknown as Metadata).productId);
+        const response = await requestSender.findLastVersion((createResponse.body as Metadata).productId);
 
         expect(response.status).toBe(httpStatusCodes.OK);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
@@ -172,7 +172,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
 
-        const body = response.body as unknown as Metadata;
+        const body = response.body as Metadata;
         const getResponse = await requestSender.getRecord(body.id);
         const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createdResponseBody } = body;
 
@@ -184,12 +184,12 @@ describe('MetadataController', function () {
         const payload = createPayload();
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        const oldBody = response.body as unknown as Metadata;
+        const oldBody = response.body as Metadata;
         payload.productId = oldBody.productId;
         payload.id = createUuid();
         const newResponse = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        const body = newResponse.body as unknown as Metadata;
+        const body = newResponse.body as Metadata;
 
         const getResponse = await requestSender.getRecord(body.id);
         const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createdResponseBody } = body;
@@ -204,7 +204,7 @@ describe('MetadataController', function () {
         payload.region = ["st'rng"];
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        const body = response.body as unknown as Metadata;
+        const body = response.body as Metadata;
 
         const getResponse = await requestSender.getRecord(body.id);
         const { anyText, anyTextTsvector, footprint, wkbGeometry, ...createdResponseBody } = body;
@@ -304,10 +304,8 @@ describe('MetadataController', function () {
       it('should return 200 status code and the updated metadata record', async function () {
         const payload = createPayload();
         const response = await requestSender.createRecord(payload);
-
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        const record = response.body as unknown as Metadata;
+        const record = response.body as Metadata;
         const updatePayload = createUpdatePayload();
 
         const updateResponse = await requestSender.updateRecord(record.id, updatePayload);
@@ -328,7 +326,7 @@ describe('MetadataController', function () {
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
 
-        const responseBody = response.body as unknown as Metadata;
+        const responseBody = response.body as Metadata;
         const id = responseBody.id;
         const updatedPayload: IUpdatePayload = createUpdatePayload();
         delete updatedPayload.sensors;
@@ -375,7 +373,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        const responseBody = response.body as unknown as Metadata;
+        const responseBody = response.body as Metadata;
         const id = responseBody.id;
         const updatedPayload: IUpdatePayload = createUpdatePayload();
         const entity = { avi: 'aviavi' };
@@ -392,7 +390,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        const responseBody = response.body as unknown as Metadata;
+        const responseBody = response.body as Metadata;
         const id = responseBody.id;
         const updatedPayload: IUpdatePayload = createUpdatePayload();
         const entity = { sensors: null };
@@ -482,7 +480,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        const id = (response.body as unknown as Metadata).id;
+        const id = (response.body as Metadata).id;
         const updatedPayload: IUpdateStatus = createUpdateStatus();
 
         const updateResponse = await requestSender.updateStatusRecord(id, updatedPayload);
@@ -510,7 +508,7 @@ describe('MetadataController', function () {
 
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        const responseBody = response.body as unknown as Metadata;
+        const responseBody = response.body as Metadata;
         const id = responseBody.id;
         const updatedPayload: IUpdateStatus = createUpdateStatus();
 
@@ -529,7 +527,7 @@ describe('MetadataController', function () {
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        const responseBody = response.body as unknown as Metadata;
+        const responseBody = response.body as Metadata;
         const id = responseBody.id;
         const updatedPayload: IUpdateStatus = createUpdateStatus();
         const entity = { productStatus: null };

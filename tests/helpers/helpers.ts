@@ -3,7 +3,7 @@ import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-ty
 import { randBetweenDate, randNumber, randPastDate, randSentence, randSoonDate, randUuid, randWord } from '@ngneat/falso';
 import { Polygon, randomPolygon } from '@turf/turf';
 import { Metadata } from '../../src/DAL/entities/metadata';
-import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
+import { IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
 import { linksToString } from '../../src/common/utils/format';
 
@@ -30,6 +30,18 @@ const linksPattern = [
     url: 'http://test.test/wms',
   },
 ];
+const FOOTPRINT = {
+  coordinates: [
+    [
+      [minX, minY],
+      [minX, maxY],
+      [maxX, maxY],
+      [maxX, minY],
+      [minX, minY],
+    ],
+  ],
+  type: 'Polygon',
+} as Polygon;
 
 function createFootprint(): Polygon {
   return randomPolygon().features[0].geometry;
@@ -84,7 +96,7 @@ export const createPayload = (): IPayload => {
     relativeAccuracySE90: randNumber({ max: maxAccuracy }),
     visualAccuracy: randNumber({ max: maxAccuracy }),
     sensors: [randWord()],
-    footprint: createFootprint(),
+    footprint: FOOTPRINT,
     heightRangeFrom: randNumber(),
     heightRangeTo: randNumber(),
     srsId: randWord(),
@@ -109,6 +121,8 @@ export const createMetadata = (): Metadata => {
   const sourceDateEnd = randBetweenDate({ from: sourceDateStart, to: new Date() });
   const minResolutionMeter = randNumber({ max: maxResolutionMeter });
   const id = randWord();
+  const footprint = FOOTPRINT;
+  const wktGeometry = WKT_GEOMETRY;
   const metadata: Metadata = {
     type: RecordType.RECORD_3D,
     productName: randWord(),
@@ -124,7 +138,7 @@ export const createMetadata = (): Metadata => {
     accuracySE90: randNumber({ max: maxSE90 }),
     relativeAccuracySE90: randNumber({ max: maxAccuracy }),
     visualAccuracy: randNumber({ max: maxAccuracy }),
-    footprint: createFootprint(),
+    footprint,
     heightRangeFrom: randNumber(),
     heightRangeTo: randNumber(),
     srsId: randWord(),
@@ -137,7 +151,7 @@ export const createMetadata = (): Metadata => {
     maxFlightAlt: randNumber(),
     geographicArea: randWord(),
     productSource: randWord(),
-    wktGeometry: WKT_GEOMETRY,
+    wktGeometry,
     productStatus: RecordStatus.UNPUBLISHED,
     id: id,
     productVersion: 1,
@@ -162,14 +176,6 @@ export const createUpdatePayload = (): IUpdatePayload => {
     sensors: [randWord()],
   };
   return payload;
-};
-
-export const createUpdateMetadata = (): IUpdateMetadata => {
-  const metadata: IUpdateMetadata = {
-    ...createIUpdate(),
-    sensors: randWord(),
-  };
-  return metadata;
 };
 
 export const createUpdateStatus = (): IUpdateStatus => {
