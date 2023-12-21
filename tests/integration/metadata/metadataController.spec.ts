@@ -307,15 +307,18 @@ describe('MetadataController', function () {
 
         expect(response.status).toBe(httpStatusCodes.CREATED);
         expect(response.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        const id = (response.body as unknown as Metadata).id;
+        const record = response.body as unknown as Metadata;
         const updatePayload = createUpdatePayload();
 
-        const updateResponse = await requestSender.updateRecord(id, updatePayload);
-        const { anyText, anyTextTsvector, footprint, wkbGeometry, ...updatedResponseBody } = updateResponse.body as Metadata;
+        const updateResponse = await requestSender.updateRecord(record.id, updatePayload);
+        const updatedRecord = updateResponse.body as Metadata;
 
         expect(updateResponse.status).toBe(httpStatusCodes.OK);
         expect(updateResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
-        expect(updatedResponseBody.description).toBe(updatePayload.description);
+        expect(updatedRecord.description).toBe(updatePayload.description);
+        expect(updatedRecord.footprint).not.toEqual(record.footprint);
+        expect(updatedRecord.footprint).toEqual(updatePayload.footprint);
+        expect(updatedRecord.wktGeometry).not.toStrictEqual(record.wktGeometry);
       });
 
       it('should return 200 status code when there is no sensors', async function () {
@@ -328,7 +331,6 @@ describe('MetadataController', function () {
         const responseBody = response.body as unknown as Metadata;
         const id = responseBody.id;
         const updatedPayload: IUpdatePayload = createUpdatePayload();
-        updatedPayload.classification = payload.classification;
         delete updatedPayload.sensors;
 
         const updateResponse = await requestSender.updateRecord(id, updatedPayload);
@@ -337,6 +339,23 @@ describe('MetadataController', function () {
         expect(updateResponse.status).toBe(httpStatusCodes.OK);
         expect(updateResponse.headers).toHaveProperty('content-type', 'application/json; charset=utf-8');
         expect(updatedResponseBody.sensors).toBe(responseBody.sensors);
+      });
+
+      it('should return 200 status code when there is no footprint', async function () {
+        const payload: IPayload = createPayload();
+        const response = await requestSender.createRecord(payload);
+
+        expect(response.status).toBe(httpStatusCodes.CREATED);
+
+        const record = response.body as Metadata;
+        const updatedPayload: IUpdatePayload = createUpdatePayload();
+        delete updatedPayload.footprint;
+
+        const updateResponse = await requestSender.updateRecord(record.id, updatedPayload);
+        const updatedRecord = updateResponse.body as Metadata;
+
+        expect(updateResponse.status).toBe(httpStatusCodes.OK);
+        expect(updatedRecord.footprint).toEqual(record.footprint);
       });
     });
 

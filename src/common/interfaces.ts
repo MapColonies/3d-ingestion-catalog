@@ -57,6 +57,8 @@ export interface IUpdatePayload extends IUpdate {
 
 export interface IUpdateMetadata extends IUpdate {
   sensors?: string;
+  productBoundingBox?: string;
+  wktGeometry?: string;
 }
 
 export interface IUpdateStatus {

@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
 import { SERVICES } from '../../common/constants';
-import { IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
+import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
@@ -72,6 +72,7 @@ export class MetadataManager {
       }
       payload = formatStrings<IUpdatePayload>(payload);
       const updateMetadata: IUpdateMetadata = this.setPatchPayloadToEntity(payload);
+      record.footprint = JSON.parse(record.footprint as unknown as string) as turf.Polygon;
       const metadata: Metadata = { ...record, ...updateMetadata };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Updated record', modelId: identifier, modelName: payload.productName, payload });
@@ -131,33 +132,40 @@ export class MetadataManager {
   }
 
   private async setPostPayloadToEntity(payload: IPayload): Promise<Metadata> {
-    const entity: Metadata = new Metadata();
-    Object.assign(entity, payload);
+    const metadata: Metadata = new Metadata();
+    Object.assign(metadata, payload);
 
-    entity.id = payload.id;
+    metadata.id = payload.id;
     if (payload.productId != undefined) {
-      entity.productVersion = (await this.findLastVersion(payload.productId)) + 1;
+      metadata.productVersion = (await this.findLastVersion(payload.productId)) + 1;
     } else {
-      entity.productVersion = 1;
-      entity.productId = payload.id;
+      metadata.productVersion = 1;
+      metadata.productId = payload.id;
     }
 
     if (payload.footprint !== undefined) {
-      entity.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
-      entity.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
+      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
     }
 
-    entity.sensors = payload.sensors!.join(', ');
-    entity.region = payload.region!.join(', ');
-    entity.links = linksToString(payload.links);
+    metadata.sensors = payload.sensors!.join(', ');
+    metadata.region = payload.region!.join(', ');
+    metadata.links = linksToString(payload.links);
 
-    return entity;
+    return metadata;
   }
 
   private setPatchPayloadToEntity(payload: IUpdatePayload): IUpdateMetadata {
-    const metadata: IUpdateMetadata = {
-      ...(payload as IUpdate),
-      ...(payload.sensors && { sensors: payload.sensors.join(', ') }),
+    const metadata: IUpdateMetadata = {};
+    Object.assign(metadata, payload);
+
+    if(payload.sensors != undefined) {
+      metadata.sensors = payload.sensors.join(', ');
+    }
+
+    if (payload.footprint != undefined) {
+      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
     };
 
     return metadata;

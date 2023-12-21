@@ -1,7 +1,7 @@
 import RandExp from 'randexp';
 import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-types';
 import { randBetweenDate, randNumber, randPastDate, randSentence, randSoonDate, randUuid, randWord } from '@ngneat/falso';
-import { Polygon } from '@turf/turf';
+import { Polygon, randomPolygon } from '@turf/turf';
 import { Metadata } from '../../src/DAL/entities/metadata';
 import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
@@ -13,18 +13,6 @@ const minX = randNumber({ min: -180, max: 179 });
 const minY = randNumber({ min: -180, max: 179 });
 const maxX = randNumber({ min: minX, max: 180 });
 const maxY = randNumber({ min: minY, max: 180 });
-const FOOTPRINT = {
-  coordinates: [
-    [
-      [minX, minY],
-      [minX, maxY],
-      [maxX, maxY],
-      [maxX, minY],
-      [minX, minY],
-    ],
-  ],
-  type: 'Polygon',
-} as Polygon;
 const WKT_GEOMETRY = `POLYGON ((${minX} ${minY}, ${minX} ${maxY}, ${maxX} ${maxY}, ${maxX} ${minY}, ${minX} ${minY}))`;
 const maxResolutionMeter = 8000;
 const noDataAccuracy = 999;
@@ -43,6 +31,10 @@ const linksPattern = [
   },
 ];
 
+function createFootprint(): Polygon {
+  return randomPolygon().features[0].geometry;
+}
+
 function createIUpdate(): Partial<IUpdatePayload> {
   const minResolutionMeter = randNumber({ max: maxResolutionMeter });
   const payload: IUpdatePayload = {
@@ -53,7 +45,7 @@ function createIUpdate(): Partial<IUpdatePayload> {
     minResolutionMeter: minResolutionMeter,
     sourceDateStart: randPastDate(),
     sourceDateEnd: randSoonDate(),
-    footprint: FOOTPRINT,
+    footprint: createFootprint(),
     maxResolutionMeter: randNumber({ min: minResolutionMeter, max: maxResolutionMeter }),
     maxAccuracyCE90: randNumber({ max: noDataAccuracy }),
     absoluteAccuracyLE90: randNumber({ max: noDataAccuracy }),
@@ -92,7 +84,7 @@ export const createPayload = (): IPayload => {
     relativeAccuracySE90: randNumber({ max: maxAccuracy }),
     visualAccuracy: randNumber({ max: maxAccuracy }),
     sensors: [randWord()],
-    footprint: FOOTPRINT,
+    footprint: createFootprint(),
     heightRangeFrom: randNumber(),
     heightRangeTo: randNumber(),
     srsId: randWord(),
@@ -132,7 +124,7 @@ export const createMetadata = (): Metadata => {
     accuracySE90: randNumber({ max: maxSE90 }),
     relativeAccuracySE90: randNumber({ max: maxAccuracy }),
     visualAccuracy: randNumber({ max: maxAccuracy }),
-    footprint: FOOTPRINT,
+    footprint: createFootprint(),
     heightRangeFrom: randNumber(),
     heightRangeTo: randNumber(),
     srsId: randWord(),
