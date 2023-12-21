@@ -107,7 +107,7 @@ describe('MetadataManager', () => {
     it('resolves without errors if id exists', async () => {
       const identifier = createUuid();
       const payload = createUpdatePayload();
-      repositoryMock.findOne.mockResolvedValue(payload);
+      repositoryMock.findOne.mockResolvedValue({ ...payload, footprint: JSON.stringify(payload.footprint) });
       repositoryMock.save.mockResolvedValue(payload);
 
       const response = metadataManager.updateRecord(identifier, payload);
