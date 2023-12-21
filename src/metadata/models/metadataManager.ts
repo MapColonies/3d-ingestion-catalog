@@ -159,14 +159,14 @@ export class MetadataManager {
     const metadata: IUpdateMetadata = {};
     Object.assign(metadata, payload);
 
-    if(payload.sensors != undefined) {
+    if (payload.sensors != undefined) {
       metadata.sensors = payload.sensors.join(', ');
     }
 
     if (payload.footprint != undefined) {
       metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
       metadata.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
-    };
+    }
 
     return metadata;
   }
