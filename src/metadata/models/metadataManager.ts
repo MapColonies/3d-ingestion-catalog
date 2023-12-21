@@ -165,7 +165,7 @@ export class MetadataManager {
 
     if (payload.footprint != undefined) {
       metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
-      metadata.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
+      metadata.wktGeometry = wkt.convert(payload.footprint);
     }
 
     return metadata;
