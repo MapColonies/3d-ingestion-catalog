@@ -29,7 +29,7 @@ export class MetadataRequestSender {
     return supertest.agent(this.app).patch(`/metadata/status/${identifier}`).set('Content-Type', 'application/json').send(payload);
   }
 
-  public async findLastVersion(identifier: string): Promise<supertest.Response> {
-    return supertest.agent(this.app).get(`/metadata/${identifier}`).set('Content-Type', 'application/json');
+  public async findLastVersion(productId: string): Promise<supertest.Response> {
+    return supertest.agent(this.app).get(`/metadata/lastVersion/${productId}`).set('Content-Type', 'application/json');
   }
 }

@@ -2,15 +2,15 @@ import jsLogger from '@map-colonies/js-logger';
 import { QueryFailedError } from 'typeorm';
 import httpStatus from 'http-status-codes';
 import { MetadataManager } from '../../../../src/metadata/models/metadataManager';
-import { createUuid, createFakeMetadata, createFakePayload, createFakeUpdatePayload, createFakeUpdateStatus } from '../../../helpers/helpers';
-import { repositoryMock, validationManagerMock } from '../../../helpers/mockCreators';
+import { createUuid, createMetadata, createPayload, createUpdatePayload, createUpdateStatus } from '../../../helpers/helpers';
+import { repositoryMock } from '../../../helpers/mockCreators';
 import { AppError } from '../../../../src/common/appError';
 
 let metadataManager: MetadataManager;
 
 describe('MetadataManager', () => {
   beforeEach(() => {
-    metadataManager = new MetadataManager(repositoryMock as never, validationManagerMock as never, jsLogger({ enabled: false }));
+    metadataManager = new MetadataManager(repositoryMock as never, jsLogger({ enabled: false }));
   });
 
   afterEach(() => {
@@ -19,7 +19,7 @@ describe('MetadataManager', () => {
 
   describe('getAll tests', () => {
     it('returns a metadata list', async () => {
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
       repositoryMock.find.mockResolvedValue([metadata]);
 
       const response = metadataManager.getAll();
@@ -46,7 +46,7 @@ describe('MetadataManager', () => {
 
   describe('getRecord tests', () => {
     it('returns a metadata record', async () => {
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
       repositoryMock.findOne.mockResolvedValue(metadata);
 
       const response = metadataManager.getRecord(metadata.id);
@@ -55,7 +55,7 @@ describe('MetadataManager', () => {
     });
 
     it('rejects if record does not exists', async () => {
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
       repositoryMock.findOne.mockResolvedValue(undefined);
 
       const response = metadataManager.getRecord(metadata.id);
@@ -74,8 +74,7 @@ describe('MetadataManager', () => {
 
   describe('createRecord tests', () => {
     it('resolves without errors if id is not in use', async () => {
-      const payload = createFakePayload();
-      validationManagerMock.validatePost.mockReturnValue(true);
+      const payload = createPayload();
       repositoryMock.save.mockResolvedValue(payload);
 
       const response = metadataManager.createRecord(payload);
@@ -84,9 +83,8 @@ describe('MetadataManager', () => {
     });
 
     it('resolves without errors if productId exists', async () => {
-      const payload = createFakePayload();
+      const payload = createPayload();
       payload.productId = payload.productName;
-      validationManagerMock.validatePost.mockReturnValue(true);
       repositoryMock.save.mockResolvedValue(payload);
       repositoryMock.findOne.mockResolvedValue(payload);
 
@@ -95,41 +93,21 @@ describe('MetadataManager', () => {
       await expect(response).resolves.toStrictEqual(payload);
     });
 
-    it('rejects if payload is not valid', async () => {
-      const payload = createFakePayload();
-      validationManagerMock.validatePost.mockReturnValue('Bad Value');
-
-      const response = metadataManager.createRecord(payload);
-
-      await expect(response).rejects.toThrow(new AppError('BadValues', httpStatus.BAD_REQUEST, 'Bad Value', true));
-    });
-
     it('rejects on DB error', async () => {
-      const payload = createFakePayload();
-      validationManagerMock.validatePost.mockReturnValue(true);
+      const payload = createPayload();
       repositoryMock.save.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
       const response = metadataManager.createRecord(payload);
 
       await expect(response).rejects.toThrow(new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true));
     });
-
-    it('rejects if record already exists', async () => {
-      const payload = createFakePayload();
-      validationManagerMock.validatePost.mockRejectedValue(new AppError('', httpStatus.CONFLICT, 'Record Already Exists', true));
-
-      const response = metadataManager.createRecord(payload);
-
-      await expect(response).rejects.toThrow(new AppError('', httpStatus.CONFLICT, 'Record Already Exists', true));
-    });
   });
 
   describe('updateRecord tests', () => {
     it('resolves without errors if id exists', async () => {
       const identifier = createUuid();
-      const payload = createFakeUpdatePayload();
-      validationManagerMock.validatePatch.mockReturnValue(true);
-      repositoryMock.findOne.mockResolvedValue(payload);
+      const payload = createUpdatePayload();
+      repositoryMock.findOne.mockResolvedValue({ ...payload, footprint: JSON.stringify(payload.footprint) });
       repositoryMock.save.mockResolvedValue(payload);
 
       const response = metadataManager.updateRecord(identifier, payload);
@@ -137,19 +115,9 @@ describe('MetadataManager', () => {
       await expect(response).resolves.toStrictEqual(payload);
     });
 
-    it('rejects if payload is not valid', async () => {
-      const identifier = createUuid();
-      const payload = createFakeUpdatePayload();
-      validationManagerMock.validatePatch.mockReturnValue('Bad Value');
-
-      const response = metadataManager.updateRecord(identifier, payload);
-
-      await expect(response).rejects.toThrow(new AppError('BadValues', httpStatus.BAD_REQUEST, 'Bad Value', true));
-    });
-
     it('rejects on DB error', async () => {
       const identifier = createUuid();
-      const payload = createFakeUpdatePayload();
+      const payload = createUpdatePayload();
       repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
       const response = metadataManager.updateRecord(identifier, payload);
@@ -159,7 +127,7 @@ describe('MetadataManager', () => {
 
     it('rejects if record does not exists', async () => {
       const identifier = createUuid();
-      const payload = createFakeUpdatePayload();
+      const payload = createUpdatePayload();
       repositoryMock.findOne.mockResolvedValue(undefined);
 
       const response = metadataManager.updateRecord(identifier, payload);
@@ -170,7 +138,7 @@ describe('MetadataManager', () => {
 
   describe('deleteRecord tests', () => {
     it('resolves without errors if record exists or not', async () => {
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
       repositoryMock.delete.mockResolvedValue(undefined);
 
       const response = await metadataManager.deleteRecord(metadata.id);
@@ -181,7 +149,7 @@ describe('MetadataManager', () => {
 
     it('rejects on DB error', async () => {
       repositoryMock.delete.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
 
       const response = metadataManager.deleteRecord(metadata.id);
 
@@ -192,7 +160,7 @@ describe('MetadataManager', () => {
   describe('publishRecord tests', () => {
     it('resolves without errors if id exists', async () => {
       const identifier = createUuid();
-      const record = createFakeUpdateStatus();
+      const record = createUpdateStatus();
       repositoryMock.findOne.mockResolvedValue(record);
       repositoryMock.save.mockResolvedValue(record);
 
@@ -203,7 +171,7 @@ describe('MetadataManager', () => {
 
     it('rejects on DB error', async () => {
       const identifier = createUuid();
-      const record = createFakeUpdateStatus();
+      const record = createUpdateStatus();
       repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
       const response = metadataManager.updateStatusRecord(identifier, record);
@@ -213,7 +181,7 @@ describe('MetadataManager', () => {
 
     it('rejects if record does not exists', async () => {
       const identifier = createUuid();
-      const record = createFakeUpdateStatus();
+      const record = createUpdateStatus();
       repositoryMock.findOne.mockResolvedValue(undefined);
 
       const response = metadataManager.updateStatusRecord(identifier, record);
@@ -224,28 +192,28 @@ describe('MetadataManager', () => {
 
   describe('findLastVersion tests', () => {
     it('returns version if productId exists', async () => {
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
       repositoryMock.findOne.mockResolvedValue(metadata);
 
-      const response = metadataManager.findLastVersion(metadata.id);
+      const response = metadataManager.findLastVersion(metadata.productId);
 
       await expect(response).resolves.toBe(metadata.productVersion);
     });
 
     it('returns 0 if productId is not exists', async () => {
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
       repositoryMock.findOne.mockResolvedValue(undefined);
 
-      const response = metadataManager.findLastVersion(metadata.id);
+      const response = metadataManager.findLastVersion(metadata.productId);
 
       await expect(response).resolves.toBe(0);
     });
 
     it('rejects on DB error', async () => {
-      const metadata = createFakeMetadata();
+      const metadata = createMetadata();
       repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
-      const response = metadataManager.findLastVersion(metadata.id);
+      const response = metadataManager.findLastVersion(metadata.productId);
 
       await expect(response).rejects.toThrow(new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true));
     });

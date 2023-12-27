@@ -1,4 +1,5 @@
 import { RecordStatus } from '@map-colonies/mc-model-types';
+import { Polygon } from 'geojson';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 export interface IServerConfig {
@@ -30,6 +31,8 @@ export interface IUpdate {
   productName?: string;
   description?: string;
   creationDate?: Date;
+  sourceDateStart?: Date;
+  sourceDateEnd?: Date;
   minResolutionMeter?: number;
   maxResolutionMeter?: number;
   maxAccuracyCE90?: number;
@@ -37,6 +40,7 @@ export interface IUpdate {
   accuracySE90?: number;
   relativeAccuracySE90?: number;
   visualAccuracy?: number;
+  footprint?: Polygon;
   heightRangeFrom?: number;
   heightRangeTo?: number;
   classification?: string;
@@ -53,6 +57,8 @@ export interface IUpdatePayload extends IUpdate {
 
 export interface IUpdateMetadata extends IUpdate {
   sensors?: string;
+  productBoundingBox?: string;
+  wktGeometry?: string;
 }
 
 export interface IUpdateStatus {

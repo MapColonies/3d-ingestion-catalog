@@ -5,8 +5,7 @@ import { Repository } from 'typeorm';
 import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
 import { SERVICES } from '../../common/constants';
-import { IUpdate, IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
-import { ValidationManager } from '../../validator/validationManager';
+import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
@@ -16,7 +15,6 @@ import { Metadata } from '../../DAL/entities/metadata';
 export class MetadataManager {
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
-    @inject(ValidationManager) private readonly validator: ValidationManager,
     @inject(SERVICES.LOGGER) private readonly logger: Logger
   ) {}
 
@@ -54,19 +52,12 @@ export class MetadataManager {
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
       payload = formatStrings<IPayload>(payload);
-      const isValid = await this.validator.validatePost(payload);
-      if (typeof isValid === 'string') {
-        throw new AppError('BadValues', httpStatus.BAD_REQUEST, isValid, true);
-      }
       const metadata = await this.setPostPayloadToEntity(payload);
       const newRecord: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Saved new record', modelId: payload.id, modelName: payload.productName, payload });
       return newRecord;
     } catch (error) {
       this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, modelName: payload.productName, error, payload });
-      if (error instanceof AppError) {
-        throw error;
-      }
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
@@ -80,11 +71,8 @@ export class MetadataManager {
         throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
       payload = formatStrings<IUpdatePayload>(payload);
-      const isValid = await this.validator.validatePatch(identifier, payload);
-      if (typeof isValid === 'string') {
-        throw new AppError('BadValues', httpStatus.BAD_REQUEST, isValid, true);
-      }
       const updateMetadata: IUpdateMetadata = this.setPatchPayloadToEntity(payload);
+      record.footprint = JSON.parse(record.footprint as unknown as string) as turf.Polygon;
       const metadata: Metadata = { ...record, ...updateMetadata };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Updated record', modelId: identifier, modelName: payload.productName, payload });
@@ -130,48 +118,55 @@ export class MetadataManager {
     }
   }
 
-  public async findLastVersion(identifier: string): Promise<number> {
-    this.logger.debug({ msg: 'Get last product version', modelId: identifier });
+  public async findLastVersion(productId: string): Promise<number> {
+    this.logger.debug({ msg: 'Get last product version', productId });
     try {
-      const metadata: Metadata | undefined = await this.repository.findOne({ where: { productId: identifier }, order: { productVersion: 'DESC' } });
+      const metadata: Metadata | undefined = await this.repository.findOne({ where: { productId }, order: { productVersion: 'DESC' } });
       const version = metadata !== undefined ? metadata.productVersion : 0;
-      this.logger.info({ msg: 'Got latest model version', modelId: identifier, version });
+      this.logger.info({ msg: 'Got latest model version', modelId: metadata?.id, version });
       return version;
     } catch (error) {
-      this.logger.error({ msg: 'Error in retrieving latest model version', modelId: identifier, error });
+      this.logger.error({ msg: 'Error in retrieving latest model version', productId, error });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
   private async setPostPayloadToEntity(payload: IPayload): Promise<Metadata> {
-    const entity: Metadata = new Metadata();
-    Object.assign(entity, payload);
+    const metadata: Metadata = new Metadata();
+    Object.assign(metadata, payload);
 
-    entity.id = payload.id;
+    metadata.id = payload.id;
     if (payload.productId != undefined) {
-      entity.productVersion = (await this.findLastVersion(payload.productId)) + 1;
+      metadata.productVersion = (await this.findLastVersion(payload.productId)) + 1;
     } else {
-      entity.productVersion = 1;
-      entity.productId = payload.id;
+      metadata.productVersion = 1;
+      metadata.productId = payload.id;
     }
 
     if (payload.footprint !== undefined) {
-      entity.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
-      entity.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
+      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
     }
 
-    entity.sensors = payload.sensors!.join(', ');
-    entity.region = payload.region!.join(', ');
-    entity.links = linksToString(payload.links);
+    metadata.sensors = payload.sensors!.join(', ');
+    metadata.region = payload.region!.join(', ');
+    metadata.links = linksToString(payload.links);
 
-    return entity;
+    return metadata;
   }
 
   private setPatchPayloadToEntity(payload: IUpdatePayload): IUpdateMetadata {
-    const metadata: IUpdateMetadata = {
-      ...(payload as IUpdate),
-      ...(payload.sensors && { sensors: payload.sensors.join(', ') }),
-    };
+    const metadata: IUpdateMetadata = {};
+    Object.assign(metadata, payload);
+
+    if (payload.sensors != undefined) {
+      metadata.sensors = payload.sensors.join(', ');
+    }
+
+    if (payload.footprint != undefined) {
+      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.wktGeometry = wkt.convert(payload.footprint);
+    }
 
     return metadata;
   }

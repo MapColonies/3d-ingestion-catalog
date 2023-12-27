@@ -1,11 +1,11 @@
 import RandExp from 'randexp';
 import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-types';
-import { randBetweenDate, randNumber, randPastDate, randSentence, randUuid, randWord } from '@ngneat/falso';
+import { randBetweenDate, randNumber, randPastDate, randSentence, randSoonDate, randUuid, randWord } from '@ngneat/falso';
+import { Polygon, randomPolygon } from '@turf/turf';
 import { Metadata } from '../../src/DAL/entities/metadata';
-import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
+import { IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
 import { linksToString } from '../../src/common/utils/format';
-import { ILookupOption } from '../../src/externalServices/lookupTables/interfaces';
 
 const productBoundingBoxHelper = new RandExp('^([-+]?(0|[1-9]\\d*)(\\.\\d+)?,){3}[-+]?(0|[1-9]\\d*)(\\.\\d+)?$').gen();
 
@@ -13,18 +13,6 @@ const minX = randNumber({ min: -180, max: 179 });
 const minY = randNumber({ min: -180, max: 179 });
 const maxX = randNumber({ min: minX, max: 180 });
 const maxY = randNumber({ min: minY, max: 180 });
-const FOOTPRINT = {
-  coordinates: [
-    [
-      [minX, minY],
-      [minX, maxY],
-      [maxX, maxY],
-      [maxX, minY],
-      [minX, minY],
-    ],
-  ],
-  type: 'Polygon',
-};
 const WKT_GEOMETRY = `POLYGON ((${minX} ${minY}, ${minX} ${maxY}, ${maxX} ${maxY}, ${maxX} ${minY}, ${minX} ${minY}))`;
 const maxResolutionMeter = 8000;
 const noDataAccuracy = 999;
@@ -42,8 +30,24 @@ const linksPattern = [
     url: 'http://test.test/wms',
   },
 ];
+const FOOTPRINT = {
+  coordinates: [
+    [
+      [minX, minY],
+      [minX, maxY],
+      [maxX, maxY],
+      [maxX, minY],
+      [minX, minY],
+    ],
+  ],
+  type: 'Polygon',
+} as Polygon;
 
-function createFakeIUpdate(): Partial<IUpdatePayload> {
+function createFootprint(): Polygon {
+  return randomPolygon().features[0].geometry;
+}
+
+function createIUpdate(): Partial<IUpdatePayload> {
   const minResolutionMeter = randNumber({ max: maxResolutionMeter });
   const payload: IUpdatePayload = {
     productName: randWord(),
@@ -51,6 +55,9 @@ function createFakeIUpdate(): Partial<IUpdatePayload> {
     creationDate: randPastDate(),
     classification: randWord(),
     minResolutionMeter: minResolutionMeter,
+    sourceDateStart: randPastDate(),
+    sourceDateEnd: randSoonDate(),
+    footprint: createFootprint(),
     maxResolutionMeter: randNumber({ min: minResolutionMeter, max: maxResolutionMeter }),
     maxAccuracyCE90: randNumber({ max: noDataAccuracy }),
     absoluteAccuracyLE90: randNumber({ max: noDataAccuracy }),
@@ -67,7 +74,7 @@ function createFakeIUpdate(): Partial<IUpdatePayload> {
   return payload;
 }
 
-export const createFakePayload = (): IPayload => {
+export const createPayload = (): IPayload => {
   const sourceDateStart = randPastDate();
   const sourceDateEnd = randBetweenDate({ from: sourceDateStart, to: new Date() });
   const minResolutionMeter = randNumber({ max: maxResolutionMeter });
@@ -89,7 +96,7 @@ export const createFakePayload = (): IPayload => {
     relativeAccuracySE90: randNumber({ max: maxAccuracy }),
     visualAccuracy: randNumber({ max: maxAccuracy }),
     sensors: [randWord()],
-    footprint: FOOTPRINT as GeoJSON.Geometry,
+    footprint: FOOTPRINT,
     heightRangeFrom: randNumber(),
     heightRangeTo: randNumber(),
     srsId: randWord(),
@@ -109,11 +116,13 @@ export const createFakePayload = (): IPayload => {
   return record;
 };
 
-export const createFakeMetadata = (): Metadata => {
+export const createMetadata = (): Metadata => {
   const sourceDateStart = randPastDate();
   const sourceDateEnd = randBetweenDate({ from: sourceDateStart, to: new Date() });
   const minResolutionMeter = randNumber({ max: maxResolutionMeter });
   const id = randWord();
+  const footprint = FOOTPRINT;
+  const wktGeometry = WKT_GEOMETRY;
   const metadata: Metadata = {
     type: RecordType.RECORD_3D,
     productName: randWord(),
@@ -129,7 +138,7 @@ export const createFakeMetadata = (): Metadata => {
     accuracySE90: randNumber({ max: maxSE90 }),
     relativeAccuracySE90: randNumber({ max: maxAccuracy }),
     visualAccuracy: randNumber({ max: maxAccuracy }),
-    footprint: FOOTPRINT as GeoJSON.Geometry,
+    footprint,
     heightRangeFrom: randNumber(),
     heightRangeTo: randNumber(),
     srsId: randWord(),
@@ -142,7 +151,7 @@ export const createFakeMetadata = (): Metadata => {
     maxFlightAlt: randNumber(),
     geographicArea: randWord(),
     productSource: randWord(),
-    wktGeometry: WKT_GEOMETRY,
+    wktGeometry,
     productStatus: RecordStatus.UNPUBLISHED,
     id: id,
     productVersion: 1,
@@ -161,23 +170,15 @@ export const createFakeMetadata = (): Metadata => {
   return metadata;
 };
 
-export const createFakeUpdatePayload = (): IUpdatePayload => {
+export const createUpdatePayload = (): IUpdatePayload => {
   const payload: IUpdatePayload = {
-    ...createFakeIUpdate(),
+    ...createIUpdate(),
     sensors: [randWord()],
   };
   return payload;
 };
 
-export const createFakeUpdateMetadata = (): IUpdateMetadata => {
-  const metadata: IUpdateMetadata = {
-    ...createFakeIUpdate(),
-    sensors: randWord(),
-  };
-  return metadata;
-};
-
-export const createFakeUpdateStatus = (): IUpdateStatus => {
+export const createUpdateStatus = (): IUpdateStatus => {
   const metadata: IUpdateStatus = {
     productStatus: RecordStatus.PUBLISHED,
   };
@@ -186,19 +187,4 @@ export const createFakeUpdateStatus = (): IUpdateStatus => {
 
 export const createUuid = (): string => {
   return randUuid();
-};
-
-export const createLookupOptions = (amount = randNumber({ min: 1, max: 3 })): ILookupOption[] => {
-  const lookupOptions: ILookupOption[] = [];
-  for (let i = 0; i < amount; i++) {
-    lookupOptions.push(createLookupOption());
-  }
-  return lookupOptions;
-};
-
-export const createLookupOption = (): ILookupOption => {
-  return {
-    value: randWord(),
-    translationCode: randWord(),
-  };
 };
