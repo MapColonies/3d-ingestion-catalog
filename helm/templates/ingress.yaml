@@ -13,7 +13,7 @@ metadata: {{ $fullname := printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | 
     {{- end }}
 spec:
   rules:
-  {{- range $host := .Values.ingress.hosts }}
+  {{- range $host := .Values.ingress.host }}
   - host: {{ $host }}
     http:
       paths:

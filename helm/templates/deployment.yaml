@@ -1,9 +1,9 @@
 {{- $releaseName := .Release.Name -}}
-{{- $chartName := include "3d-ingestion-catalog.name" . -}}
-{{- $cloudProviderFlavor := include "3d-ingestion-catalog.cloudProviderFlavor" . -}}
-{{- $tag := include "3d-ingestion-catalog.tag" . -}}
-{{- $cloudProviderDockerRegistryUrl := include "3d-ingestion-catalog.cloudProviderDockerRegistryUrl" . -}}
-{{- if .Values.enabled -}}
+{{- $chartName := include "catalog.name" . -}}
+{{- $cloudProviderFlavor := include "catalog.cloudProviderFlavor" . -}}
+{{- $tag := include "catalog.tag" . -}}
+{{- $cloudProviderImagePullSecretName := include "catalog.cloudProviderImagePullSecretName" . -}}
+{{- $cloudProviderDockerRegistryUrl := include "catalog.cloudProviderDockerRegistryUrl" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,12 +11,15 @@ metadata:
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
-    environment: {{ include "3d-ingestion-catalog.environment" . }}
+    environment: {{ include "catalog.environment" . }}
     release: {{ $releaseName }}
-    {{- include "3d-ingestion-catalog.labels" . | nindent 4 }}
-{{- with .Values.annotations }}
+    {{- include "catalog.labels" . | nindent 4 }}
+{{- $splunk := (include "common.splunk.merged" . ) | fromYaml }}   
+{{- if $splunk.enabled }}
+{{- with $splunk.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
+{{- end }}
 {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -25,15 +28,19 @@ spec:
       app: {{ $chartName }}
       release: {{ $releaseName }}
       run: {{ $releaseName }}-{{ $chartName }}
-      {{- include "3d-ingestion-catalog.selectorLabels" . | nindent 6 }}
+      {{- include "catalog.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: {{ $chartName }}
         release: {{ $releaseName }}
         run: {{ $releaseName }}-{{ $chartName }}
-        {{- include "3d-ingestion-catalog.selectorLabels" . | nindent 8 }}
+        {{- include "catalog.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if $cloudProviderImagePullSecretName }}
+      imagePullSecrets:
+        - name: {{ $cloudProviderImagePullSecretName | quote }}
+      {{- end }}
       containers:
         - name: {{ $releaseName }}-{{ $chartName }}-deployment
           {{- with .Values.image }}
@@ -43,13 +50,14 @@ spec:
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.db.secretName }}
+                {{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
+                  name: {{ $postgres.user.secretName }}
                   key: username
-            {{- if .Values.db.requirePassword }}
+            {{- if $postgres.user.requirePassword }}
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.db.secretName }}
+                  name: {{ $postgres.user.secretName }}
                   key: password
             {{- end }}
             - name: SERVER_PORT
@@ -57,9 +65,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ $releaseName }}-{{ $chartName }}-configmap
-            # - secretRef:
-            #     name: {{ $releaseName }}-{{ $chartName }}-secret
-
+            - configMapRef:
+                name: {{ $releaseName }}-ingestion-configmap
           ports:
             - name: http
               containerPort: {{ .Values.env.targetPort }}
@@ -69,48 +76,51 @@ spec:
             httpGet:
               path: /liveness
               port: http
+            timeoutSeconds: 20
+            periodSeconds: 30
           {{- if .Values.resources.enabled }}
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
-          {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
+          {{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
+          {{- $filebeat := (include "common.filebeat.merged" . ) | fromYaml }}
+          {{- if or $postgres.ssl.enabled $filebeat.enabled }}
           volumeMounts:
-            {{- if .Values.db.sslEnable }}
+            {{- if $postgres.ssl.enabled }}
             - name: cert-conf
               mountPath: /tmp/certs
               readOnly: true
             {{- end }}
-            {{- if .Values.logsFilebeat.enabled }}
+            {{- if $filebeat.enabled }}
             - name: logs
-              mountPath: {{ .Values.logsFilebeat.mountPath }}
+              mountPath: {{ $filebeat.mountPath }}
             {{- end }}
           {{- end }}
-        {{- if .Values.logsFilebeat.enabled }}
+        {{- if $filebeat.enabled }}
           command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
         - name: filebeat
-          image: {{ .Values.logsFilebeat.filebeatImage }}
+          image: {{ $filebeat.image }}
           args: [ "-c", "/etc/filebeat.yml", "-e" ]
           volumeMounts:
             - name: logs
-              mountPath: {{ .Values.logsFilebeat.mountPath }}
+              mountPath: {{ $filebeat.mountPath }}
             - name: config
               mountPath: /etc/filebeat.yml
               subPath: filebeat.yml
         {{- end }}
-      {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
+      {{- if or $postgres.ssl.enabled $filebeat.enabled }}
       volumes:
-        {{- if .Values.db.sslEnable }}
+        {{- if $postgres.ssl.enabled }}
         - name: cert-conf
           secret:
-            secretName: {{ .Values.db.secretName }}
+            secretName: {{ $postgres.ssl.secretName }}
         {{- end }}
-        {{- if .Values.logsFilebeat.enabled }}
+        {{- if $filebeat.enabled }}
         - name: logs
           emptyDir: {}
         - name: config
           configMap:
-            name: filebeat-config
+            name: filebeat-config-{{ .Release.Name }}
         {{- end }}
       {{- end }}
       terminationGracePeriodSeconds: 30
-{{- end -}}

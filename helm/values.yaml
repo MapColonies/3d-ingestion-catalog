@@ -1,0 +1,145 @@
+global:
+  postgres:
+      host: 10.0.4.4
+      port: 5432
+      schema: public
+      name: 3d-catalog-manager-dev
+      user:
+        requirePassword: true
+        rejectUnauthorized: true
+        useExternal: true
+        secretName: 'catalog-3d-dev-secret'
+        username: postgres
+        password: Libot4allnonprod
+      ssl:
+        enabled: false
+        useExternal: true
+        secretName: catalog-3d-dev-secret
+        caFileName: caFile
+        certFileName: certFile
+        keyFileName: keyFile
+
+  filebeat:
+    enabled: false
+    image: docker.elastic.co/beats/filebeat:7.12.1
+    mountPath: /usr/src/app/logs
+    pycsw:
+      mountPath: /var/log/pycsw
+      logFile: pycsw.log
+    nginxS3Gateway: 
+      mountPath: /var/log/nginx
+    elastic:
+      host: 10.8.0.8
+      port: 9200
+      protocol: http
+      username: 
+      password:
+      index: 3d-np
+      sslEnabled: false
+    kibana:
+      host: 10.8.0.8:5601
+
+  ingestion:
+    splunk:
+      enabled: false
+      annotations:
+        collectord.io/index: SPLUNK_INDEX
+        collectord.io/logs-output: splunk  
+
+postgres:
+    host: 
+    port: 5432
+    schema: ''
+    name: ''
+    user:
+      requirePassword: true
+      rejectUnauthorized: true
+      useExternal: true
+      secretName: ''
+      username: ''
+      password: ''
+    ssl:
+      enabled: false
+      useExternal: true
+      secretName: ''
+      caFileName: ''
+      certFileName: ''
+      keyFileName: ''
+      
+filebeat:
+  enabled: false
+  image: ''
+  mountPath: /
+  pycsw:
+    mountPath: /
+    logFile: ''
+  nginxS3Gateway: 
+    mountPath: /
+  elastic:
+    host: 
+    port: 9200
+    protocol: http
+    username: 
+    password:
+    index: ''
+    sslEnabled: false
+  kibana:
+    host: 
+
+ingestion:
+  splunk:
+    enabled: false
+    annotations:
+      collectord.io/index: ''
+      collectord.io/logs-output: ''  
+
+initialDelaySeconds: 60
+nodePort: 30030
+replicaCount: 1
+
+image:
+  repository: 3d-ingestion-catalog
+  tag: ''
+
+env:
+  port: 
+  targetPort: 
+  protocol: TCP
+  logLevel: info
+  logPrettyPrintEnabled: false
+  responseCompressionEnabled: true
+  requestPayloadLimit: 1mb
+  tracing:
+    enabled: false
+    url: 'http://localhost:55681/v1/trace'
+  metrics:
+    enabled: false
+    url: 'http://localhost:55681/v1/metrics'
+
+resources:
+  enabled: true
+  value:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+ingress:
+  enabled: false
+  annotations:
+    kubernetes.io/ingress.class: ''
+    nginx.org/mergeable-ingress-type: '`'
+    nginx.org/rewrites: >-
+      serviceName={{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 |
+      trimSuffix "-" }} rewrite=/
+  path: /
+  host: ''
+
+route:
+  enabled: false
+  path: /
+  https: true
+  host:
+  useCert: false
