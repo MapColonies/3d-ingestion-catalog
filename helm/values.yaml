@@ -67,7 +67,7 @@ postgres:
       keyFileName: ''
       
 filebeat:
-  enabled: true
+  enabled: false
   image: ''
   mountPath: ''
   pycsw:
