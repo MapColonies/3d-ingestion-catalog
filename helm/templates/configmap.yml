@@ -1,10 +1,11 @@
 {{- $chartName := include "catalog.name" . -}}
 {{- $tracingUrl := include "catalog.tracingUrl" . -}}
+{{- $configmapName := include "configmap.fullname" . }}
 {{- $metricsUrl := include "catalog.metricsUrl" . -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-{{ $chartName }}-configmap
+  name: {{ $configmapName }}
 data:
   REQUEST_PAYLOAD_LIMIT: {{ .Values.env.requestPayloadLimit | quote }}
   RESPONSE_COMPRESSION_ENABLED: {{ .Values.env.responseCompressionEnabled | quote }}

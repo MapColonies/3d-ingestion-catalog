@@ -67,14 +67,14 @@ postgres:
       keyFileName: ''
       
 filebeat:
-  enabled: false
+  enabled: true
   image: ''
-  mountPath: /
+  mountPath: ''
   pycsw:
-    mountPath: /
+    mountPath: ''
     logFile: ''
   nginxS3Gateway: 
-    mountPath: /
+    mountPath: ''
   elastic:
     host: 
     port: 9200
@@ -85,6 +85,18 @@ filebeat:
     sslEnabled: false
   kibana:
     host: 
+
+sidecars:
+  filebeat:
+    name: filebeat
+    image: docker.elastic.co/beats/filebeat:7.12.1
+    args: [ "-c", "/etc/filebeat.yml", "-e" ]
+    volumeMounts:
+      - name: ''
+        mountPath: ''
+      - name: ''
+        mountPath: ''
+        subPath: ''
 
 ingestion:
   splunk:
