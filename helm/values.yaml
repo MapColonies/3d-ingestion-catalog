@@ -19,26 +19,6 @@ global:
         certFileName: ''
         keyFileName: ''
 
-  filebeat:
-    enabled: false
-    image: docker.elastic.co/beats/filebeat:7.12.1
-    mountPath: ''
-    pycsw:
-      mountPath: ''
-      logFile: ''
-    nginxS3Gateway: 
-      mountPath: ''
-    elastic:
-      host: ''
-      port: 9200
-      protocol: ''
-      username: 
-      password:
-      index: ''
-      sslEnabled: false
-    kibana:
-      host: 
-
   ingestion:
     splunk:
       enabled: false
@@ -65,38 +45,6 @@ postgres:
       caFileName: ''
       certFileName: ''
       keyFileName: ''
-      
-filebeat:
-  enabled: false
-  image: ''
-  mountPath: ''
-  pycsw:
-    mountPath: ''
-    logFile: ''
-  nginxS3Gateway: 
-    mountPath: ''
-  elastic:
-    host: 
-    port: 9200
-    protocol: ''
-    username: 
-    password:
-    index: ''
-    sslEnabled: false
-  kibana:
-    host: 
-
-sidecars:
-  filebeat:
-    name: filebeat
-    image: docker.elastic.co/beats/filebeat:7.12.1
-    args: [ "-c", "/etc/filebeat.yml", "-e" ]
-    volumeMounts:
-      - name: ''
-        mountPath: ''
-      - name: ''
-        mountPath: ''
-        subPath: ''
 
 ingestion:
   splunk:
