@@ -53,6 +53,17 @@ ingestion:
       collectord.io/index: ''
       collectord.io/logs-output: ''  
 
+# Add side car to the Deployment, for example
+# sidecars: |-
+#   - name: sidecar
+#     image: "{{ .Values.sidecar.image }}:{{ .Values.sidecar.imageTag }}"
+#     volumeMounts: []
+#     args: []
+#     ports: []
+#     resources:
+#     {{- toYaml .Values.sidecar.resources.value | nindent 12 }}
+sidecars: ''
+
 initialDelaySeconds: 60
 nodePort: 30030
 replicaCount: 1
