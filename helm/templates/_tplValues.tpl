@@ -49,10 +49,6 @@ Custom definitions
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.postgres .Values.global.postgres ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.filebeat.merged" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.filebeat .Values.global.filebeat ) "context" . ) }}
-{{- end -}}
-
 {{- define "common.splunk.merged" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.ingestion.splunk .Values.global.ingestion.splunk ) "context" . ) }}
 {{- end -}}

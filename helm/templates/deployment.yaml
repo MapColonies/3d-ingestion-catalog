@@ -82,45 +82,24 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
-          {{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
-          {{- $filebeat := (include "common.filebeat.merged" . ) | fromYaml }}
-          {{- if or $postgres.ssl.enabled $filebeat.enabled }}
+          {{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}          
+          {{- if $postgres.ssl.enabled }}
           volumeMounts:
             {{- if $postgres.ssl.enabled }}
             - name: cert-conf
               mountPath: /tmp/certs
               readOnly: true
             {{- end }}
-            {{- if $filebeat.enabled }}
-            - name: logs
-              mountPath: {{ $filebeat.mountPath }}
-            {{- end }}
-          {{- end }}
-        {{- if $filebeat.enabled }}
-          command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
-        - name: filebeat
-          image: {{ $filebeat.image }}
-          args: [ "-c", "/etc/filebeat.yml", "-e" ]
-          volumeMounts:
-            - name: logs
-              mountPath: {{ $filebeat.mountPath }}
-            - name: config
-              mountPath: /etc/filebeat.yml
-              subPath: filebeat.yml
-        {{- end }}
-      {{- if or $postgres.ssl.enabled $filebeat.enabled }}
+      {{- if $postgres.ssl.enabled }}
       volumes:
         {{- if $postgres.ssl.enabled }}
         - name: cert-conf
           secret:
             secretName: {{ $postgres.ssl.secretName }}
         {{- end }}
-        {{- if $filebeat.enabled }}
-        - name: logs
-          emptyDir: {}
-        - name: config
-          configMap:
-            name: filebeat-config-{{ .Release.Name }}
-        {{- end }}
       {{- end }}
       terminationGracePeriodSeconds: 30
+      {{- if .Values.sidecars }}
+      {{ tpl (.Values.sidecars) . | nindent 8 }}
+      {{- end }}
+      
