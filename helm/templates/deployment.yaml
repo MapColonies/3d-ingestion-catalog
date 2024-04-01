@@ -101,6 +101,6 @@ spec:
       {{- end }}
       terminationGracePeriodSeconds: 30
       {{- if .Values.sidecars }}
-      {{ tpl (.Values.sidecars) . | nindent 8 }}
+      {{ tpl (.Values.sidecars) . | nindent 8 }} 
       {{- end }}
       
