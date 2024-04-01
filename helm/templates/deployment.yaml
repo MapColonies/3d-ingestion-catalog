@@ -90,6 +90,7 @@ spec:
               mountPath: /tmp/certs
               readOnly: true
             {{- end }}
+          {{- end }}
       {{- if $postgres.ssl.enabled }}
       volumes:
         {{- if $postgres.ssl.enabled }}
