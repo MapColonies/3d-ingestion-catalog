@@ -1,5 +1,4 @@
 import { Logger } from '@map-colonies/js-logger';
-import { BoundCounter, Meter } from '@opentelemetry/api-metrics';
 import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
@@ -19,14 +18,10 @@ type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpda
 
 @injectable()
 export class MetadataController {
-  private readonly createdResourceCounter: BoundCounter;
-
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(MetadataManager) private readonly manager: MetadataManager,
-    @inject(SERVICES.METER) private readonly meter: Meter
   ) {
-    this.createdResourceCounter = meter.createCounter('created_resource');
   }
 
   public getAll: GetAllRequestHandler = async (req, res, next) => {
@@ -69,7 +64,6 @@ export class MetadataController {
     const payload: IPayload = req.body;
     try {
       const createdMetadata = await this.manager.createRecord(payload);
-      this.createdResourceCounter.add(1);
       return res.status(httpStatus.CREATED).json(createdMetadata);
     } catch (error) {
       this.logger.error({ msg: `Couldn't post record`, error });

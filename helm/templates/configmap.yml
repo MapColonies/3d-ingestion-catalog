@@ -25,6 +25,7 @@ data:
   {{ if .Values.env.metrics.enabled }}
   TELEMETRY_METRICS_ENABLED: 'true'
   TELEMETRY_METRICS_URL: {{ $metricsUrl }}
+  TELEMETRY_METRICS_BUCKETS: {{ .Values.env.metrics.buckets | toJson | quote }}
   {{ end }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
 {{- end }}
