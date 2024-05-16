@@ -7,8 +7,8 @@ import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
 import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import httpLogger from '@map-colonies/express-access-log-middleware';
-import { metricsMiddleware } from '@map-colonies/telemetry';
 import { Registry } from 'prom-client';
+import { collectMetricsExpressMiddleware } from '@map-colonies/telemetry';
 import { SERVICES } from './common/constants';
 import { IConfig } from './common/interfaces';
 import { METADATA_ROUTER_SYMBOL } from './metadata/routes/metadataRouter';
@@ -51,7 +51,7 @@ export class ServerBuilder {
 
   private registerPreRoutesMiddleware(): void {
     if (this.metricsRegistry) {
-      this.serverInstance.use('/metrics', metricsMiddleware(this.metricsRegistry));
+      this.serverInstance.use(collectMetricsExpressMiddleware({ registry: this.metricsRegistry, collectNodeMetrics: true }));
     }
     
     this.serverInstance.use(httpLogger({ logger: this.logger, ignorePaths: ['/metrics'] }));
