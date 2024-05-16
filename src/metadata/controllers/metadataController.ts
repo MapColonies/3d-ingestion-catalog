@@ -18,11 +18,7 @@ type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpda
 
 @injectable()
 export class MetadataController {
-  public constructor(
-    @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(MetadataManager) private readonly manager: MetadataManager,
-  ) {
-  }
+  public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger, @inject(MetadataManager) private readonly manager: MetadataManager) {}
 
   public getAll: GetAllRequestHandler = async (req, res, next) => {
     try {

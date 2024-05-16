@@ -23,7 +23,7 @@ export class ServerBuilder {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(METADATA_ROUTER_SYMBOL) private readonly metadataRouter: Router,
     @inject(SERVICES.METRICS_REGISTRY) private readonly metricsRegistry?: Registry
-    ) {
+  ) {
     this.serverInstance = express();
   }
 
@@ -53,7 +53,7 @@ export class ServerBuilder {
     if (this.metricsRegistry) {
       this.serverInstance.use(collectMetricsExpressMiddleware({ registry: this.metricsRegistry, collectNodeMetrics: true }));
     }
-    
+
     this.serverInstance.use(httpLogger({ logger: this.logger, ignorePaths: ['/metrics'] }));
 
     if (this.config.get<boolean>('server.response.compression.enabled')) {

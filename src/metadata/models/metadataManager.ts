@@ -12,10 +12,10 @@ import { IPayload } from '../../common/types';
 import { Metadata } from '../../DAL/entities/metadata';
 
 @injectable()
-export class MetadataManager { 
+export class MetadataManager {
   public constructor(
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
-    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    @inject(SERVICES.LOGGER) private readonly logger: Logger
   ) {}
 
   public async getAll(): Promise<Metadata[] | undefined> {

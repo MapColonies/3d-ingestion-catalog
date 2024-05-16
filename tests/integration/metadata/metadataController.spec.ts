@@ -29,7 +29,6 @@ describe('MetadataController', function () {
     register.clear();
   });
 
-
   describe('GET /metadata', function () {
     describe('Happy Path 🙂', function () {
       it('should return 204 if there are no metadata records', async function () {
