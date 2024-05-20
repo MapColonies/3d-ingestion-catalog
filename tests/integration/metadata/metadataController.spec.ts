@@ -1,7 +1,6 @@
 import jsLogger from '@map-colonies/js-logger';
 import { trace } from '@opentelemetry/api';
 import httpStatusCodes from 'http-status-codes';
-import { QueryFailedError } from 'typeorm';
 import { Metadata } from '../../../src/DAL/entities/metadata';
 import { createUuid, createMetadata, createPayload, createUpdatePayload, createUpdateStatus } from '../../helpers/helpers';
 import { SERVICES } from '../../../src/common/constants';
@@ -62,7 +61,7 @@ describe('MetadataController', function () {
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
-        repositoryMock.find.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
+        repositoryMock.find.mockRejectedValue(new Error());
 
         const response = await requestSender.getAll();
 
@@ -110,7 +109,7 @@ describe('MetadataController', function () {
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
+        repositoryMock.findOne.mockRejectedValue(new Error());
 
         const response = await requestSender.getRecord(createUuid());
 
@@ -155,7 +154,7 @@ describe('MetadataController', function () {
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
+        repositoryMock.findOne.mockRejectedValue(new Error());
 
         const response = await requestSender.findLastVersion(createUuid());
 
@@ -289,7 +288,7 @@ describe('MetadataController', function () {
         requestSender = new MetadataRequestSender(app);
         const payload = createPayload();
         payload.productId = createUuid();
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
+        repositoryMock.findOne.mockRejectedValue(new Error());
 
         const response = await requestSender.createRecord(payload);
 
@@ -415,7 +414,7 @@ describe('MetadataController', function () {
         requestSender = new MetadataRequestSender(app);
         const metadata = createMetadata();
         const payload = createUpdatePayload();
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
+        repositoryMock.findOne.mockRejectedValue(new Error());
 
         const response = await requestSender.updateRecord(metadata.id, payload);
 
@@ -463,7 +462,7 @@ describe('MetadataController', function () {
       });
 
       it('should return 500 status code if a db exception happens', async function () {
-        repositoryMock.delete.mockRejectedValue(new QueryFailedError('select *', [], new Error('failed')));
+        repositoryMock.delete.mockRejectedValue(new Error());
 
         const response = await requestSender.deleteRecord(createUuid());
 
@@ -543,7 +542,10 @@ describe('MetadataController', function () {
     describe('Sad Path 😥', function () {
       beforeEach(async function () {
         const app = await getApp({
-          override: [{ token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } }],
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
           useChild: true,
         });
         requestSender = new MetadataRequestSender(app);
@@ -552,7 +554,7 @@ describe('MetadataController', function () {
       it('should return 500 status code if a db exception happens', async function () {
         const metadata = createMetadata();
         const payload = createUpdateStatus();
-        repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
+        repositoryMock.findOne.mockRejectedValue(new Error());
 
         const response = await requestSender.updateStatusRecord(metadata.id, payload);
 
