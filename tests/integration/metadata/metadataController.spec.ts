@@ -1,7 +1,6 @@
 import jsLogger from '@map-colonies/js-logger';
 import { trace } from '@opentelemetry/api';
 import httpStatusCodes from 'http-status-codes';
-import { register } from 'prom-client';
 import { Metadata } from '../../../src/DAL/entities/metadata';
 import { createUuid, createMetadata, createPayload, createUpdatePayload, createUpdateStatus } from '../../helpers/helpers';
 import { SERVICES } from '../../../src/common/constants';
@@ -23,10 +22,6 @@ describe('MetadataController', function () {
       useChild: true,
     });
     requestSender = new MetadataRequestSender(app);
-  });
-
-  afterEach(function () {
-    register.clear();
   });
 
   describe('GET /metadata', function () {
@@ -57,7 +52,6 @@ describe('MetadataController', function () {
 
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a db exception happens', async function () {
-        register.clear();
         const app = await getApp({
           override: [
             { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
@@ -106,7 +100,6 @@ describe('MetadataController', function () {
 
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a db exception happens', async function () {
-        register.clear();
         const app = await getApp({
           override: [
             { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
@@ -152,7 +145,6 @@ describe('MetadataController', function () {
 
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a db exception happens', async function () {
-        register.clear();
         const app = await getApp({
           override: [
             { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
@@ -285,7 +277,6 @@ describe('MetadataController', function () {
 
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a db exception happens', async function () {
-        register.clear();
         const app = await getApp({
           override: [
             { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
@@ -412,7 +403,6 @@ describe('MetadataController', function () {
 
     describe('Sad Path 😥', function () {
       it('should return 500 status code if a db exception happens', async function () {
-        register.clear();
         const app = await getApp({
           override: [
             { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
@@ -460,7 +450,6 @@ describe('MetadataController', function () {
 
     describe('Sad Path 😥', function () {
       beforeEach(async function () {
-        register.clear();
         const app = await getApp({
           override: [
             { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
@@ -552,7 +541,6 @@ describe('MetadataController', function () {
 
     describe('Sad Path 😥', function () {
       beforeEach(async function () {
-        register.clear();
         const app = await getApp({
           override: [
             { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
