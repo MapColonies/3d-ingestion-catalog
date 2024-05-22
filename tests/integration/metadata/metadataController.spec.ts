@@ -1,6 +1,7 @@
 import jsLogger from '@map-colonies/js-logger';
 import { trace } from '@opentelemetry/api';
 import httpStatusCodes from 'http-status-codes';
+import { register } from 'prom-client';
 import { Metadata } from '../../../src/DAL/entities/metadata';
 import { createUuid, createMetadata, createPayload, createUpdatePayload, createUpdateStatus } from '../../helpers/helpers';
 import { SERVICES } from '../../../src/common/constants';
@@ -21,7 +22,12 @@ describe('MetadataController', function () {
       ],
       useChild: true,
     });
+    register.clear();
     requestSender = new MetadataRequestSender(app);
+  });
+
+  afterEach(() => {
+    register.clear();
   });
 
   describe('GET /metadata', function () {
