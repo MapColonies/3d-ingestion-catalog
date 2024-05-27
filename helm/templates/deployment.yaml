@@ -19,6 +19,10 @@ metadata:
 {{- with $splunk.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
+    {{- if .Values.env.metrics.enabled }}
+    prometheus.io/port: {{ .Values.env.metrics.prometheus.port | quote }}
+    prometheus.io/scrape: {{ .Values.env.metrics.prometheus.scrape | quote }}
+    {{- end }}
 {{- end }}
 {{- end }}
 spec:

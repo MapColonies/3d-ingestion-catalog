@@ -7,7 +7,8 @@ import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
 import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import httpLogger from '@map-colonies/express-access-log-middleware';
-import { defaultMetricsMiddleware, getTraceContexHeaderMiddleware } from '@map-colonies/telemetry';
+import { Registry } from 'prom-client';
+import { collectMetricsExpressMiddleware } from '@map-colonies/telemetry';
 import { SERVICES } from './common/constants';
 import { IConfig } from './common/interfaces';
 import { METADATA_ROUTER_SYMBOL } from './metadata/routes/metadataRouter';
@@ -20,7 +21,8 @@ export class ServerBuilder {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(METADATA_ROUTER_SYMBOL) private readonly metadataRouter: Router
+    @inject(METADATA_ROUTER_SYMBOL) private readonly metadataRouter: Router,
+    @inject(SERVICES.METRICS_REGISTRY) private readonly metricsRegistry?: Registry
   ) {
     this.serverInstance = express();
   }
@@ -48,7 +50,10 @@ export class ServerBuilder {
   }
 
   private registerPreRoutesMiddleware(): void {
-    this.serverInstance.use('/metrics', defaultMetricsMiddleware());
+    if (this.metricsRegistry) {
+      this.serverInstance.use(collectMetricsExpressMiddleware({ registry: this.metricsRegistry, collectNodeMetrics: true }));
+    }
+
     this.serverInstance.use(httpLogger({ logger: this.logger, ignorePaths: ['/metrics'] }));
 
     if (this.config.get<boolean>('server.response.compression.enabled')) {
@@ -56,7 +61,6 @@ export class ServerBuilder {
     }
 
     this.serverInstance.use(bodyParser.json(this.config.get<bodyParser.Options>('server.request.payload')));
-    this.serverInstance.use(getTraceContexHeaderMiddleware());
 
     const ignorePathRegex = new RegExp(`^${this.config.get<string>('openapiConfig.basePath')}/.*`, 'i');
     const apiSpecPath = this.config.get<string>('openapiConfig.filePath');

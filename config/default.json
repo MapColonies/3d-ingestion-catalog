@@ -9,6 +9,9 @@
     "logger": {
       "level": "debug",
       "prettyPrint": false
+    },
+    "metrics": {
+      "enabled": true
     }
   },
   "server": {
