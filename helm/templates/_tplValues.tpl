@@ -68,3 +68,11 @@ Custom definitions
 {{- define "common.extraVolumeMounts.merged" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.extraVolumeMounts .Values.global.extraVolumeMounts ) "context" . ) }}
 {{- end -}}
+
+{{- define "common.metrics.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.env.metrics .Values.global.metrics ) "context" . ) }}
+{{- end -}}
+
+{{- define "common.tracing.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.env.tracing .Values.global.tracing ) "context" . ) }}
+{{- end -}}

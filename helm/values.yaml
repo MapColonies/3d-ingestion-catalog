@@ -33,8 +33,6 @@ cloudProvider:
     flavor: 
     imagePullSecretName: 
 imagePullPolicy: 
-tracing: {}
-metrics: {}
 environment: 
 
 nodePort: 30030
