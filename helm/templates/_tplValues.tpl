@@ -49,6 +49,22 @@ Custom definitions
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.postgres .Values.global.postgres ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.splunk.merged" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.ingestion.splunk .Values.global.ingestion.splunk ) "context" . ) }}
+{{- define "common.ca.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.ca .Values.global.ca ) "context" . ) }}
+{{- end -}}
+
+{{- define "common.podAnnotations.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.podAnnotations .Values.global.podAnnotations ) "context" . ) }}
+{{- end -}}
+
+{{- define "common.extraVolumes.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.extraVolumes .Values.global.extraVolumes ) "context" . ) }}
+{{- end -}}
+
+{{- define "common.sidecars.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.sidecars .Values.global.sidecars ) "context" . ) }}
+{{- end -}}
+
+{{- define "common.extraVolumeMounts.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.extraVolumeMounts .Values.global.extraVolumeMounts ) "context" . ) }}
 {{- end -}}

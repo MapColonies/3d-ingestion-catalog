@@ -1,60 +1,74 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "catalog.name" . -}}
+{{- $fullName := include "catalog.fullname" . -}}
 {{- $cloudProviderFlavor := include "catalog.cloudProviderFlavor" . -}}
 {{- $tag := include "catalog.tag" . -}}
 {{- $cloudProviderImagePullSecretName := include "catalog.cloudProviderImagePullSecretName" . -}}
 {{- $cloudProviderDockerRegistryUrl := include "catalog.cloudProviderDockerRegistryUrl" . -}}
+{{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
+{{- $ca := (include "common.ca.merged" . ) | fromYaml }}
+{{- $podAnnotations := (include "common.podAnnotations.merged" . ) | fromYaml }}
+{{- $extraVolumes := (include "common.extraVolumes.merged" . ) | fromYaml }}
+{{- $extraVolumeMounts := (include "common.extraVolumeMounts.merged" . ) | fromYaml }}
+{{- $sidecars := (include "common.sidecars.merged" . ) | fromYaml }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $releaseName }}-{{ $chartName }}
+  name: {{ $fullName }}
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
     environment: {{ include "catalog.environment" . }}
     release: {{ $releaseName }}
     {{- include "catalog.labels" . | nindent 4 }}
-{{- $splunk := (include "common.splunk.merged" . ) | fromYaml }}   
-{{- if $splunk.enabled }}
-{{- with $splunk.annotations }}
-  annotations:
-{{ toYaml . | indent 4 }}
-    {{- if .Values.env.metrics.enabled }}
-    prometheus.io/port: {{ .Values.env.metrics.prometheus.port | quote }}
-    prometheus.io/scrape: {{ .Values.env.metrics.prometheus.scrape | quote }}
-    {{- end }}
-{{- end }}
-{{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
       app: {{ $chartName }}
       release: {{ $releaseName }}
-      run: {{ $releaseName }}-{{ $chartName }}
+      run: {{ $fullName }}
       {{- include "catalog.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: {{ $chartName }}
         release: {{ $releaseName }}
-        run: {{ $releaseName }}-{{ $chartName }}
+        run: {{ $fullName }}
         {{- include "catalog.selectorLabels" . | nindent 8 }}
+      annotations:
+      {{- range $key, $value := $podAnnotations }}
+        {{- if $value.enabled }}
+          {{ toYaml $value.annotations }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.resetOnConfigChange }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- end }}
     spec:
       {{- if $cloudProviderImagePullSecretName }}
       imagePullSecrets:
         - name: {{ $cloudProviderImagePullSecretName | quote }}
       {{- end }}
       containers:
-        - name: {{ $releaseName }}-{{ $chartName }}-deployment
+        - name: {{ $fullName }}-deployment
           {{- with .Values.image }}
           image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $tag }}
           {{- end }}
+          volumeMounts:
+            {{- if $postgres.ssl.enabled }}
+            - name: cert-conf
+              mountPath: /tmp/certs
+              readOnly: true
+            {{- end }}
+            {{- if $extraVolumeMounts -}}
+              {{ toYaml $extraVolumeMounts | nindent 12 }}
+            {{- end }}
           env:
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                {{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
                   name: {{ $postgres.user.secretName }}
                   key: username
             {{- if $postgres.user.requirePassword }}
@@ -65,46 +79,50 @@ spec:
                   key: password
             {{- end }}
             - name: SERVER_PORT
-              value: {{ .Values.env.targetPort | quote }}
+              value: {{ .Values.env.targetPort | quote }}    
           envFrom:
             - configMapRef:
-                name: {{ $releaseName }}-{{ $chartName }}-configmap
-            - configMapRef:
-                name: {{ .Release.Name }}-{{ $chartName }}-configmap
+                name: {{ $fullName }}
           ports:
             - name: http
               containerPort: {{ .Values.env.targetPort }}
               protocol: {{ .Values.env.protocol }}
+          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
-            initialDelaySeconds: {{ .Values.initialDelaySeconds }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
             httpGet:
-              path: /liveness
-              port: http
-            timeoutSeconds: 20
-            periodSeconds: 30
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.env.targetPort }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.env.targetPort }}
+          {{- end }}        
           {{- if .Values.resources.enabled }}
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
-          {{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}          
-          {{- if $postgres.ssl.enabled }}
-          volumeMounts:
-            {{- if $postgres.ssl.enabled }}
-            - name: cert-conf
-              mountPath: /tmp/certs
-              readOnly: true
-            {{- end }}
-          {{- end }}
-      {{- if $postgres.ssl.enabled }}
+        {{- if $sidecars }}
+        {{ tpl ($sidecars) . | nindent 8 }}
+        {{- end }}
       volumes:
         {{- if $postgres.ssl.enabled }}
         - name: cert-conf
           secret:
             secretName: {{ $postgres.ssl.secretName }}
+        {{- end }}   
+        {{- if $ca.enabled }}
+        - name: root-ca
+          secret:
+            secretName: {{ $ca.secretName }}
         {{- end }}
-      {{- end }}
-      terminationGracePeriodSeconds: 30
-      {{- if .Values.sidecars }}
-      {{ tpl (.Values.sidecars) . | nindent 8 }} 
-      {{- end }}
-      
+        {{- if $extraVolumes -}}
+          {{ tpl (toYaml $extraVolumes) . | nindent 8 }}
+        {{- end }}

@@ -1,16 +1,17 @@
-{{- $chartName := include "catalog.name" . -}}
 {{- $tracingUrl := include "catalog.tracingUrl" . -}}
-{{- $configmapName := include "configmap.fullname" . }}
 {{- $metricsUrl := include "catalog.metricsUrl" . -}}
+{{- $chartName := include "catalog.name" . -}}
+{{- $fullName := include "catalog.fullname" . -}}
+{{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
+{{- $ca := (include "common.ca.merged" . ) | fromYaml }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ $configmapName }}
+  name: {{ $fullName }}
 data:
   REQUEST_PAYLOAD_LIMIT: {{ .Values.env.requestPayloadLimit | quote }}
   RESPONSE_COMPRESSION_ENABLED: {{ .Values.env.responseCompressionEnabled | quote }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
-  {{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
   DB_HOST: {{ quote $postgres.host }}
   DB_PORT: {{ quote $postgres.port }}
   DB_NAME: {{ $postgres.name }}
@@ -26,6 +27,9 @@ data:
   {{ if .Values.env.metrics.enabled }}
   TELEMETRY_METRICS_ENABLED: 'true'
   TELEMETRY_METRICS_URL: {{ $metricsUrl }}
-  TELEMETRY_METRICS_BUCKETS: {{ .Values.env.metrics.buckets | toJson | quote }}
   {{ end }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
+  {{- if $ca.enabled }}
+  REQUESTS_CA_BUNDLE: {{ printf "%s/%s" $ca.path $ca.key | quote }}
+  NODE_EXTRA_CA_CERTS: {{ printf "%s/%s" $ca.path $ca.key | quote }}
+  {{- end }}

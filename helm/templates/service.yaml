@@ -1,11 +1,11 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "catalog.name" . -}}
 {{- $cloudProviderFlavor := include "catalog.cloudProviderFlavor" . -}}
-{{- $serviceName := include "catalog.fullname" . -}}
+{{- $fullNeme := include "catalog.fullname" . -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $serviceName }}
+  name: {{ $fullNeme }}
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
@@ -27,5 +27,5 @@ spec:
   selector:
     app: {{ $chartName }}
     release: {{ $releaseName }}
-    run: {{ $releaseName }}-{{ $chartName }}
+    run: {{ $fullNeme }}
     {{- include "catalog.selectorLabels" . | nindent 4 }}
