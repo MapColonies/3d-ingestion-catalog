@@ -106,7 +106,7 @@ env:
     enabled: false
     url: http://localhost:55681/v1/trace
   metrics:
-    enabled: false
+    enabled: true
     url: http://localhost:55681/v1/metrics
 
 resources:
