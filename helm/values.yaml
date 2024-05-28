@@ -56,20 +56,20 @@ readinessProbe:
   path: /liveness
 
 postgres:
-  host: 10.0.4.4
-  port: 5432
-  schema: public
-  name: 3d-catalog-manager-dev
+  host: 
+  port: 
+  schema: 
+  name: 
   user:
-    requirePassword: true
-    rejectUnauthorized: true
-    useExternal: true
-    secretName: catalog-3d-dev-secret
-    username: postgres
-    password: Libot4allnonprod
+    requirePassword: false
+    rejectUnauthorized: false
+    useExternal: false
+    secretName: 
+    username: 
+    password: 
   ssl:
     enabled: false
-    useExternal: true
+    useExternal: false
     secretName: ''
     caFileName: ''
     certFileName: ''
@@ -77,10 +77,10 @@ postgres:
 
 ca:
   enabled: false
-  useExternal: true
-  secretName: root-ca
-  path: /usr/local/share/ca-certificates
-  key: ca.crt
+  useExternal: false
+  secretName: 
+  path: 
+  key: 
 
 extraVolumes: {}
 
