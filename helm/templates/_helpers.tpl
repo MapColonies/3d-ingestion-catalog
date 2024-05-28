@@ -87,28 +87,6 @@ Returns the cloud provider docker registry url from the chart's values if exists
 {{- end -}}
 
 {{/*
-Returns the tracing url from the chart's values if exists or from global
-*/}}
-{{- define "catalog.tracingUrl" -}}
-{{- if .Values.env.tracing.url }}
-    {{- .Values.env.tracing.url -}}
-{{- else -}}
-    {{- .Values.global.tracing.url -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Returns the tracing url from the chart's values if exists or from global
-*/}}
-{{- define "catalog.metricsUrl" -}}
-{{- if .Values.env.metrics.url }}
-    {{- .Values.env.metrics.url -}}
-{{- else -}}
-    {{- .Values.global.metrics.url -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Returns the cloud provider image pull secret name from the chart's values if exists or from global
 */}}
 {{- define "catalog.cloudProviderImagePullSecretName" -}}
