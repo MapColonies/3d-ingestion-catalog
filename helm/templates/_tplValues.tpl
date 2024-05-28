@@ -36,19 +36,13 @@ Usage:
 {{- end -}}
 {{ $dst | toYaml }}
 {{- end -}}
-
 {{/*
 End of usage example
 */}}
 
 {{/*
-Custom definitions
+Common definitions
 */}}
-
-{{- define "common.postgres.merged" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.postgres .Values.global.postgres ) "context" . ) }}
-{{- end -}}
-
 {{- define "common.ca.merged" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.ca .Values.global.ca ) "context" . ) }}
 {{- end -}}
@@ -75,4 +69,11 @@ Custom definitions
 
 {{- define "common.tracing.merged" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.env.tracing .Values.global.tracing ) "context" . ) }}
+{{- end -}}
+
+{{/*
+Custom definitions
+*/}}
+{{- define "common.postgres.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.postgres .Values.global.postgres ) "context" . ) }}
 {{- end -}}
