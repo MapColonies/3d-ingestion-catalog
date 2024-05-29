@@ -1,8 +1,8 @@
 global:
   cloudProvider:
-    dockerRegistryUrl: acrarolibotnonprod.azurecr.io
+    dockerRegistryUrl: 
     flavor: openshift
-    imagePullSecretName: mapcolonies-secret
+    imagePullSecretName: 
   imagePullPolicy: IfNotPresent
   tracing: {}
   metrics: {}
@@ -86,11 +86,12 @@ extraVolumeMounts: {}
 
 sidecars: {}
 
+podAnnotations: {}
+
 image:
   repository: 3d-ingestion-catalog
   tag: v5.1.1
 
-podAnnotations: {}
 
 env:
   port: 80

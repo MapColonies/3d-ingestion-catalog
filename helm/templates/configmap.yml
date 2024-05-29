@@ -1,9 +1,8 @@
-{{- $chartName := include "catalog.name" . -}}
 {{- $fullName := include "catalog.fullname" . -}}
-{{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
-{{- $ca := (include "common.ca.merged" . ) | fromYaml }}
-{{- $tracing := (include "common.tracing.merged" . ) | fromYaml }}
-{{- $metrics := (include "common.metrics.merged" . ) | fromYaml }}
+{{- $postgres := (include "merged.postgres" . ) | fromYaml }}
+{{- $ca := (include "merged.ca" . ) | fromYaml }}
+{{- $tracing := (include "merged.tracing" . ) | fromYaml }}
+{{- $metrics := (include "merged.metrics" . ) | fromYaml }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -28,8 +27,8 @@ data:
   TELEMETRY_METRICS_ENABLED: 'true'
   TELEMETRY_METRICS_URL: {{ $metrics.url }}
   {{ end }}
-  LOG_LEVEL: {{ .Values.env.logLevel | quote }}
   {{- if $ca.enabled }}
   REQUESTS_CA_BUNDLE: {{ printf "%s/%s" $ca.path $ca.key | quote }}
   NODE_EXTRA_CA_CERTS: {{ printf "%s/%s" $ca.path $ca.key | quote }}
   {{- end }}
+  SERVER_PORT: {{ .Values.env.targetPort | quote }}    

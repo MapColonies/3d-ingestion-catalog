@@ -43,37 +43,37 @@ End of usage example
 {{/*
 Common definitions
 */}}
-{{- define "common.ca.merged" -}}
+{{- define "merged.ca" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.ca .Values.global.ca ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.podAnnotations.merged" -}}
+{{- define "merged.podAnnotations" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.podAnnotations .Values.global.podAnnotations ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.extraVolumes.merged" -}}
+{{- define "merged.extraVolumes" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.extraVolumes .Values.global.extraVolumes ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.sidecars.merged" -}}
+{{- define "merged.sidecars" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.sidecars .Values.global.sidecars ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.extraVolumeMounts.merged" -}}
+{{- define "merged.extraVolumeMounts" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.extraVolumeMounts .Values.global.extraVolumeMounts ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.metrics.merged" -}}
+{{- define "merged.metrics" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.env.metrics .Values.global.metrics ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.tracing.merged" -}}
+{{- define "merged.tracing" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.env.tracing .Values.global.tracing ) "context" . ) }}
 {{- end -}}
 
 {{/*
 Custom definitions
 */}}
-{{- define "common.postgres.merged" -}}
+{{- define "merged.postgres" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.postgres .Values.global.postgres ) "context" . ) }}
 {{- end -}}

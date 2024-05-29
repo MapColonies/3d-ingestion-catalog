@@ -5,12 +5,12 @@
 {{- $tag := include "catalog.tag" . -}}
 {{- $cloudProviderImagePullSecretName := include "catalog.cloudProviderImagePullSecretName" . -}}
 {{- $cloudProviderDockerRegistryUrl := include "catalog.cloudProviderDockerRegistryUrl" . -}}
-{{- $postgres := (include "common.postgres.merged" . ) | fromYaml }}
-{{- $ca := (include "common.ca.merged" . ) | fromYaml }}
-{{- $podAnnotations := (include "common.podAnnotations.merged" . ) | fromYaml }}
-{{- $extraVolumes := (include "common.extraVolumes.merged" . ) | fromYaml }}
-{{- $extraVolumeMounts := (include "common.extraVolumeMounts.merged" . ) | fromYaml }}
-{{- $sidecars := (include "common.sidecars.merged" . ) | fromYaml }}
+{{- $ca := (include "merged.ca" . ) | fromYaml }}
+{{- $podAnnotations := (include "merged.podAnnotations" . ) | fromYaml }}
+{{- $extraVolumes := (include "merged.extraVolumes" . ) | fromYaml }}
+{{- $extraVolumeMounts := (include "merged.extraVolumeMounts" . ) | fromYaml }}
+{{- $sidecars := (include "merged.sidecars" . ) | fromYaml }}
+{{- $postgres := (include "merged.postgres" . ) | fromYaml }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,6 +57,11 @@ spec:
           image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $tag }}
           {{- end }}
           volumeMounts:
+            {{- if $ca.enabled }}
+            - mountPath: {{ printf "%s/%s" $ca.path $ca.key | quote }}
+              name: root-ca
+              subPath: {{ quote $ca.key }}
+            {{- end }}
             {{- if $postgres.ssl.enabled }}
             - name: cert-conf
               mountPath: /tmp/certs
@@ -78,8 +83,6 @@ spec:
                   name: {{ $postgres.user.secretName }}
                   key: password
             {{- end }}
-            - name: SERVER_PORT
-              value: {{ .Values.env.targetPort | quote }}    
           envFrom:
             - configMapRef:
                 name: {{ $fullName }}
@@ -104,7 +107,7 @@ spec:
             httpGet:
               path: {{ .Values.readinessProbe.path }}
               port: {{ .Values.env.targetPort }}
-          {{- end }}        
+          {{- end }}
           {{- if .Values.resources.enabled }}
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
