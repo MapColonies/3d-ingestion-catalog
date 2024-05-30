@@ -13,6 +13,5 @@ export const SERVICES: Record<string, symbol> = {
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
   METADATA_REPOSITORY: Symbol('MetadataRepository'),
-  HEALTH_CHECK: Symbol('HealthCheck'),
 };
 /* eslint-enable @typescript-eslint/naming-convention */

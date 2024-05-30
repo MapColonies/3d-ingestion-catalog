@@ -4,6 +4,8 @@ import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
 import * as turf from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
+import { Tracer } from '@opentelemetry/api';
+import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../../common/constants';
 import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
 import { formatStrings, linksToString } from '../../common/utils/format';
@@ -14,10 +16,12 @@ import { Metadata } from '../../DAL/entities/metadata';
 @injectable()
 export class MetadataManager {
   public constructor(
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
-    @inject(SERVICES.LOGGER) private readonly logger: Logger
   ) {}
 
+  @withSpanAsyncV4
   public async getAll(): Promise<Metadata[] | undefined> {
     this.logger.debug({ msg: 'Get all models metadata' });
     try {
@@ -30,6 +34,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async getRecord(identifier: string): Promise<Metadata> {
     this.logger.debug({ msg: 'Get metadata of record', modelId: identifier });
     try {
@@ -48,6 +53,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async createRecord(payload: IPayload): Promise<Metadata> {
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
@@ -62,6 +68,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async updateRecord(identifier: string, payload: IUpdatePayload): Promise<Metadata> {
     this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, modelName: payload.productName, payload });
     try {
@@ -86,6 +93,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async deleteRecord(identifier: string): Promise<void> {
     this.logger.debug({ msg: 'Delete record', modelId: identifier });
     try {
@@ -97,6 +105,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async updateStatusRecord(identifier: string, payload: IUpdateStatus): Promise<Metadata> {
     this.logger.debug({ msg: 'Update status record', modelId: identifier, status: payload.productStatus });
     try {
@@ -118,6 +127,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async findLastVersion(productId: string): Promise<number> {
     this.logger.debug({ msg: 'Get last product version', productId });
     try {
@@ -131,6 +141,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   private async setPostPayloadToEntity(payload: IPayload): Promise<Metadata> {
     const metadata: Metadata = new Metadata();
     Object.assign(metadata, payload);
@@ -155,6 +166,7 @@ export class MetadataManager {
     return metadata;
   }
 
+  @withSpanV4
   private setPatchPayloadToEntity(payload: IUpdatePayload): IUpdateMetadata {
     const metadata: IUpdateMetadata = {};
     Object.assign(metadata, payload);
