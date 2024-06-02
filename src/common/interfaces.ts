@@ -64,8 +64,3 @@ export interface IUpdateMetadata extends IUpdate {
 export interface IUpdateStatus {
   productStatus: RecordStatus;
 }
-
-export interface ITraceParentContext {
-  traceParent?: string;
-  traceState?: string;
-}

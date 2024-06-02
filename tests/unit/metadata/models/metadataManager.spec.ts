@@ -11,7 +11,7 @@ let metadataManager: MetadataManager;
 
 describe('MetadataManager', () => {
   beforeEach(() => {
-      metadataManager = new MetadataManager(jsLogger({ enabled: false }), trace.getTracer('testTracer'), repositoryMock as never);
+    metadataManager = new MetadataManager(jsLogger({ enabled: false }), trace.getTracer('testTracer'), repositoryMock as never);
   });
 
   afterEach(() => {

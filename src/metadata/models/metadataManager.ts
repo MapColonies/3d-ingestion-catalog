@@ -18,7 +18,7 @@ export class MetadataManager {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
-    @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
+    @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>
   ) {}
 
   @withSpanAsyncV4
