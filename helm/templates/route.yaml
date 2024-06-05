@@ -1,7 +1,7 @@
 {{- $releaseName := .Release.Name -}}
-{{- $chartName := include "store-trigger.name" . -}}
-{{- $cloudProviderFlavor := include "store-trigger.cloudProviderFlavor" . -}}
-{{- $fullName := include "store-trigger.fullname" . -}}
+{{- $chartName := include "catalog.name" . -}}
+{{- $cloudProviderFlavor := include "catalog.cloudProviderFlavor" . -}}
+{{- $fullName := include "catalog.fullname" . -}}
 {{- if and (eq $cloudProviderFlavor "openshift") (.Values.route.enabled) -}}
 apiVersion: route.openshift.io/v1
 kind: Route
