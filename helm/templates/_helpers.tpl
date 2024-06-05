@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "3d-ingestion-catalog.name" -}}
+{{- define "catalog.name" -}}
 {{- default .Chart.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "3d-ingestion-catalog.fullname" -}}
+{{- define "catalog.fullname" -}}
 {{- $name := default .Chart.Name }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
@@ -22,16 +22,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "3d-ingestion-catalog.chart" -}}
+{{- define "catalog.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "3d-ingestion-catalog.labels" -}}
-helm.sh/chart: {{ include "3d-ingestion-catalog.chart" . }}
-{{ include "3d-ingestion-catalog.selectorLabels" . }}
+{{- define "catalog.labels" -}}
+helm.sh/chart: {{ include "catalog.chart" . }}
+{{ include "catalog.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -41,71 +41,58 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "3d-ingestion-catalog.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "3d-ingestion-catalog.name" . }}
+{{- define "catalog.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "catalog.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Returns the environment from global if exists or from the chart's values, defaults to development
+Returns the environment from the chart's values if exists or from global, defaults to development
 */}}
-{{- define "3d-ingestion-catalog.environment" -}}
-{{- if .Values.global.environment }}
-    {{- .Values.global.environment -}}
+{{- define "catalog.environment" -}}
+{{- if .Values.environment }}
+    {{- .Values.environment -}}
 {{- else -}}
-    {{- .Values.environment | default "development" -}}
+    {{- .Values.global.environment | default "development" -}}
 {{- end -}}
 {{- end -}}
+
 {{/*
-Returns the cloud provider name from global if exists or from the chart's values, defaults to minikube
+Returns the cloud provider name from the chart's values if exists or from global, defaults to minikube
 */}}
-{{- define "3d-ingestion-catalog.cloudProviderFlavor" -}}
-{{- if .Values.global.cloudProvider.flavor }}
-    {{- .Values.global.cloudProvider.flavor -}}
-{{- else if .Values.cloudProvider -}}
-    {{- .Values.cloudProvider.flavor | default "minikube" -}}
+{{- define "catalog.cloudProviderFlavor" -}}
+{{- if .Values.cloudProvider.flavor }}
+    {{- .Values.cloudProvider.flavor -}}
 {{- else -}}
-    {{ "minikube" }}
+    {{- .Values.global.cloudProvider.flavor | default "minikube" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
 Returns the tag of the chart.
 */}}
-{{- define "3d-ingestion-catalog.tag" -}}
+{{- define "catalog.tag" -}}
 {{- default (printf "v%s" .Chart.AppVersion) .Values.image.tag }}
 {{- end }}
 
 {{/*
-Returns the cloud provider docker registry url from global if exists or from the chart's values
+Returns the cloud provider docker registry url from the chart's values if exists or from global
 */}}
-{{- define "3d-ingestion-catalog.cloudProviderDockerRegistryUrl" -}}
-{{- if .Values.global.cloudProvider.dockerRegistryUrl }}
-    {{- printf "%s/" .Values.global.cloudProvider.dockerRegistryUrl -}}
-{{- else if .Values.cloudProvider.dockerRegistryUrl -}}
+{{- define "catalog.cloudProviderDockerRegistryUrl" -}}
+{{- if .Values.cloudProvider.dockerRegistryUrl }}
     {{- printf "%s/" .Values.cloudProvider.dockerRegistryUrl -}}
 {{- else -}}
+    {{- printf "%s/" .Values.global.cloudProvider.dockerRegistryUrl -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Returns the tracing url from global if exists or from the chart's values
+Returns the cloud provider image pull secret name from the chart's values if exists or from global
 */}}
-{{- define "3d-ingestion-catalog.tracingUrl" -}}
-{{- if .Values.global.tracing.url }}
-    {{- .Values.global.tracing.url -}}
-{{- else if .Values.cloudProvider -}}
-    {{- .Values.env.tracing.url -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Returns the tracing url from global if exists or from the chart's values
-*/}}
-{{- define "3d-ingestion-catalog.metricsUrl" -}}
-{{- if .Values.global.metrics.url }}
-    {{- .Values.global.metrics.url -}}
-{{- else -}}
-    {{- .Values.env.metrics.url -}}
+{{- define "catalog.cloudProviderImagePullSecretName" -}}
+{{- if .Values.cloudProvider.imagePullSecretName }}
+    {{- .Values.cloudProvider.imagePullSecretName -}}
+{{- else if .Values.global.cloudProvider.imagePullSecretName -}}
+    {{- .Values.global.cloudProvider.imagePullSecretName -}}
 {{- end -}}
 {{- end -}}

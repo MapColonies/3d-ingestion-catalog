@@ -1,31 +1,34 @@
-{{- $chartName := include "3d-ingestion-catalog.name" . -}}
-{{- $tracingUrl := include "3d-ingestion-catalog.tracingUrl" . -}}
-{{- $metricsUrl := include "3d-ingestion-catalog.metricsUrl" . -}}
-{{- if .Values.enabled -}}
+{{- $fullName := include "catalog.fullname" . -}}
+{{- $postgres := (include "merged.postgres" . ) | fromYaml }}
+{{- $ca := (include "merged.ca" . ) | fromYaml }}
+{{- $tracing := (include "merged.tracing" . ) | fromYaml }}
+{{- $metrics := (include "merged.metrics" . ) | fromYaml }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-{{ $chartName }}-configmap
+  name: {{ $fullName }}
 data:
   REQUEST_PAYLOAD_LIMIT: {{ .Values.env.requestPayloadLimit | quote }}
   RESPONSE_COMPRESSION_ENABLED: {{ .Values.env.responseCompressionEnabled | quote }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
-  DB_HOST: {{ quote .Values.db.host }}
-  DB_PORT: {{ quote .Values.db.port }}
-  DB_NAME: {{ .Values.db.database }}
-  DB_CERT_PATH: /tmp/certs/{{ .Values.db.certFileName }}
-  DB_KEY_PATH: /tmp/certs/{{ .Values.db.keyFileName }}
-  DB_CA_PATH: /tmp/certs/{{ .Values.db.caFileName }}
-  DB_ENABLE_SSL_AUTH: {{ .Values.db.sslEnable | quote }}
+  DB_HOST: {{ quote $postgres.host }}
+  DB_PORT: {{ quote $postgres.port }}
+  DB_NAME: {{ $postgres.name }}
+  DB_CERT_PATH: /tmp/certs/{{ $postgres.ssl.certFileName }}
+  DB_KEY_PATH: /tmp/certs/{{ $postgres.ssl.keyFileName }}
+  DB_CA_PATH: /tmp/certs/{{ $postgres.ssl.caFileName }}
+  DB_ENABLE_SSL_AUTH: {{ $postgres.ssl.enabled | quote }}
   LOG_PRETTY_PRINT_ENABLED: {{ .Values.env.logPrettyPrintEnabled | quote }}
-  {{ if .Values.env.tracing.enabled }}
+  {{ if $tracing.enabled }}
   TELEMETRY_TRACING_ENABLED: 'true'
-  TELEMETRY_TRACING_URL: {{ $tracingUrl }}
+  TELEMETRY_TRACING_URL: {{ $tracing.url }}
   {{ end }}
-  {{ if .Values.env.metrics.enabled }}
+  {{ if $metrics.enabled }}
   TELEMETRY_METRICS_ENABLED: 'true'
-  TELEMETRY_METRICS_URL: {{ $metricsUrl }}
-  TELEMETRY_METRICS_BUCKETS: {{ .Values.env.metrics.buckets | toJson | quote }}
+  TELEMETRY_METRICS_URL: {{ $metrics.url }}
   {{ end }}
-  LOG_LEVEL: {{ .Values.env.logLevel | quote }}
-{{- end }}
+  {{- if $ca.enabled }}
+  REQUESTS_CA_BUNDLE: {{ printf "%s/%s" $ca.path $ca.key | quote }}
+  NODE_EXTRA_CA_CERTS: {{ printf "%s/%s" $ca.path $ca.key | quote }}
+  {{- end }}
+  SERVER_PORT: {{ .Values.env.targetPort | quote }}    

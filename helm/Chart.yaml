@@ -1,5 +1,6 @@
 apiVersion: v2
-name: 3d-ingestion-catalog
-description: A Helm chart for discrete-ingestion-db
-version: 2.0.4
-appVersion: 2.0.4
+name: catalog
+description: A Helm chart for catalog (CRUD) service
+type: application
+version: 3.0.0
+appVersion: 5.1.1
