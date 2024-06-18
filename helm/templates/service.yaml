@@ -1,17 +1,17 @@
 {{- $releaseName := .Release.Name -}}
-{{- $chartName := include "3d-ingestion-catalog.name" . -}}
-{{- $cloudProviderFlavor := include "3d-ingestion-catalog.cloudProviderFlavor" . -}}
-{{- if .Values.enabled -}}
+{{- $chartName := include "catalog.name" . -}}
+{{- $cloudProviderFlavor := include "catalog.cloudProviderFlavor" . -}}
+{{- $fullNeme := include "catalog.fullname" . -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $releaseName }}-{{ $chartName }}
+  name: {{ $fullNeme }}
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
-    environment: {{ include "3d-ingestion-catalog.environment" . }}
+    environment: {{ include "catalog.environment" . }}
     release: {{ $releaseName }}
-    {{- include "3d-ingestion-catalog.labels" . | nindent 4 }}
+    {{- include "catalog.labels" . | nindent 4 }}
 spec:
   {{- if eq $cloudProviderFlavor "minikube" }}
   type: NodePort
@@ -27,6 +27,5 @@ spec:
   selector:
     app: {{ $chartName }}
     release: {{ $releaseName }}
-    run: {{ $releaseName }}-{{ $chartName }}
-    {{- include "3d-ingestion-catalog.selectorLabels" . | nindent 4 }}
-{{- end }}
+    run: {{ $fullNeme }}
+    {{- include "catalog.selectorLabels" . | nindent 4 }}

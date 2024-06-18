@@ -1,120 +1,127 @@
 {{- $releaseName := .Release.Name -}}
-{{- $chartName := include "3d-ingestion-catalog.name" . -}}
-{{- $cloudProviderFlavor := include "3d-ingestion-catalog.cloudProviderFlavor" . -}}
-{{- $tag := include "3d-ingestion-catalog.tag" . -}}
-{{- $cloudProviderDockerRegistryUrl := include "3d-ingestion-catalog.cloudProviderDockerRegistryUrl" . -}}
-{{- if .Values.enabled -}}
+{{- $chartName := include "catalog.name" . -}}
+{{- $fullName := include "catalog.fullname" . -}}
+{{- $cloudProviderFlavor := include "catalog.cloudProviderFlavor" . -}}
+{{- $tag := include "catalog.tag" . -}}
+{{- $cloudProviderImagePullSecretName := include "catalog.cloudProviderImagePullSecretName" . -}}
+{{- $cloudProviderDockerRegistryUrl := include "catalog.cloudProviderDockerRegistryUrl" . -}}
+{{- $ca := (include "merged.ca" . ) | fromYaml }}
+{{- $podAnnotations := (include "merged.podAnnotations" . ) | fromYaml }}
+{{- $extraVolumes := (include "merged.extraVolumes" . ) | fromYaml }}
+{{- $extraVolumeMounts := (include "merged.extraVolumeMounts" . ) | fromYaml }}
+{{- $sidecars := (include "merged.sidecars" . ) | fromYaml }}
+{{- $postgres := (include "merged.postgres" . ) | fromYaml }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $releaseName }}-{{ $chartName }}
+  name: {{ $fullName }}
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
-    environment: {{ include "3d-ingestion-catalog.environment" . }}
+    environment: {{ include "catalog.environment" . }}
     release: {{ $releaseName }}
-    {{- include "3d-ingestion-catalog.labels" . | nindent 4 }}
-{{- with .Values.annotations }}
-  annotations:
-{{ toYaml . | indent 4 }}
-    {{- if .Values.env.metrics.enabled }}
-    prometheus.io/port: {{ .Values.env.metrics.prometheus.port | quote }}
-    prometheus.io/scrape: {{ .Values.env.metrics.prometheus.scrape | quote }}
-    {{- end }}
-{{- end }}
+    {{- include "catalog.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
       app: {{ $chartName }}
       release: {{ $releaseName }}
-      run: {{ $releaseName }}-{{ $chartName }}
-      {{- include "3d-ingestion-catalog.selectorLabels" . | nindent 6 }}
+      run: {{ $fullName }}
+      {{- include "catalog.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: {{ $chartName }}
         release: {{ $releaseName }}
-        run: {{ $releaseName }}-{{ $chartName }}
-        {{- include "3d-ingestion-catalog.selectorLabels" . | nindent 8 }}
+        run: {{ $fullName }}
+        {{- include "catalog.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{ include "merged.podAnnotations" . | nindent 8 }}
+      {{- if .Values.resetOnConfigChange }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- end }}
     spec:
+      {{- if $cloudProviderImagePullSecretName }}
+      imagePullSecrets:
+        - name: {{ $cloudProviderImagePullSecretName | quote }}
+      {{- end }}
       containers:
-        - name: {{ $releaseName }}-{{ $chartName }}-deployment
+        - name: {{ $fullName }}-deployment
           {{- with .Values.image }}
           image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $tag }}
           {{- end }}
-          env:
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.db.secretName }}
-                  key: username
-            {{- if .Values.db.requirePassword }}
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.db.secretName }}
-                  key: password
-            {{- end }}
-            - name: SERVER_PORT
-              value: {{ .Values.env.targetPort | quote }}
-          envFrom:
-            - configMapRef:
-                name: {{ $releaseName }}-{{ $chartName }}-configmap
-            # - secretRef:
-            #     name: {{ $releaseName }}-{{ $chartName }}-secret
-
-          ports:
-            - name: http
-              containerPort: {{ .Values.env.targetPort }}
-              protocol: {{ .Values.env.protocol }}
-          livenessProbe:
-            initialDelaySeconds: {{ .Values.initialDelaySeconds }}
-            httpGet:
-              path: /liveness
-              port: http
-          {{- if .Values.resources.enabled }}
-          resources:
-            {{- toYaml .Values.resources.value | nindent 12 }}
-          {{- end }}
-          {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
           volumeMounts:
-            {{- if .Values.db.sslEnable }}
+            {{- if $ca.enabled }}
+            - mountPath: {{ printf "%s/%s" $ca.path $ca.key | quote }}
+              name: root-ca
+              subPath: {{ quote $ca.key }}
+            {{- end }}
+            {{- if $postgres.ssl.enabled }}
             - name: cert-conf
               mountPath: /tmp/certs
               readOnly: true
             {{- end }}
-            {{- if .Values.logsFilebeat.enabled }}
-            - name: logs
-              mountPath: {{ .Values.logsFilebeat.mountPath }}
+            {{- if $extraVolumeMounts -}}
+              {{ toYaml $extraVolumeMounts | nindent 12 }}
             {{- end }}
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $postgres.user.secretName }}
+                  key: username
+            {{- if $postgres.user.requirePassword }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $postgres.user.secretName }}
+                  key: password
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ $fullName }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.env.targetPort }}
+              protocol: {{ .Values.env.protocol }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.env.targetPort }}
           {{- end }}
-        {{- if .Values.logsFilebeat.enabled }}
-          command: ["/bin/sh", "-c", "node --max_old_space_size=512 ./index.js >> /usr/src/app/logs/log.log 2>&1"]
-        - name: filebeat
-          image: {{ .Values.logsFilebeat.filebeatImage }}
-          args: [ "-c", "/etc/filebeat.yml", "-e" ]
-          volumeMounts:
-            - name: logs
-              mountPath: {{ .Values.logsFilebeat.mountPath }}
-            - name: config
-              mountPath: /etc/filebeat.yml
-              subPath: filebeat.yml
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.env.targetPort }}
+          {{- end }}
+          {{- if .Values.resources.enabled }}
+          resources:
+            {{- toYaml .Values.resources.value | nindent 12 }}
+          {{- end }}
+        {{- if $sidecars }}
+        {{ tpl ($sidecars) . | nindent 8 }}
         {{- end }}
-      {{- if or .Values.db.sslEnable .Values.logsFilebeat.enabled }}
       volumes:
-        {{- if .Values.db.sslEnable }}
+        {{- if $postgres.ssl.enabled }}
         - name: cert-conf
           secret:
-            secretName: {{ .Values.db.secretName }}
+            secretName: {{ $postgres.ssl.secretName }}
+        {{- end }}   
+        {{- if $ca.enabled }}
+        - name: root-ca
+          secret:
+            secretName: {{ $ca.secretName }}
         {{- end }}
-        {{- if .Values.logsFilebeat.enabled }}
-        - name: logs
-          emptyDir: {}
-        - name: config
-          configMap:
-            name: filebeat-config
+        {{- if $extraVolumes -}}
+          {{ tpl (toYaml $extraVolumes) . | nindent 8 }}
         {{- end }}
-      {{- end }}
-      terminationGracePeriodSeconds: 30
-{{- end -}}

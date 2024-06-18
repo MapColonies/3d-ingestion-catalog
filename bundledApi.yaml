@@ -490,7 +490,7 @@ components:
           description: The path of the model
         keywords:
           type: string
-          nullable: true
+          nullable: false
           description: The keywords of the product
         id:
           type: string

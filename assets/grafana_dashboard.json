@@ -315,7 +315,7 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "up{service_name=\"3d-ingestion-catalog\"}",
+          "expr": "up{namespace=\"$namespace\", service_name=\"3d-ingestion-catalog\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
