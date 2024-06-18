@@ -31,14 +31,14 @@ const linksPattern = [
   },
 ];
 const FOOTPRINT = polygon([
-    [
-      [minX, minY],
-      [minX, maxY],
-      [maxX, maxY],
-      [maxX, minY],
-      [minX, minY],
-    ],
-  ]).geometry;
+  [
+    [minX, minY],
+    [minX, maxY],
+    [maxX, maxY],
+    [maxX, minY],
+    [minX, minY],
+  ],
+]).geometry;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function createFootprint() {

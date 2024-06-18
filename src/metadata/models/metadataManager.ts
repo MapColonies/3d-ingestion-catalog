@@ -4,7 +4,8 @@ import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
 import { bbox } from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
-import { Tracer } from '@opentelemetry/api';
+import { Tracer, trace } from '@opentelemetry/api';
+import { THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../../common/constants';
 import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
@@ -36,6 +37,11 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async getRecord(identifier: string): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Get metadata of record', modelId: identifier });
     try {
       const record = await this.repository.findOne(identifier);
@@ -55,6 +61,11 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async createRecord(payload: IPayload): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: payload.id,
+    });
+
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
       payload = formatStrings<IPayload>(payload);
@@ -70,6 +81,11 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async updateRecord(identifier: string, payload: IUpdatePayload): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, modelName: payload.productName, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
@@ -94,6 +110,11 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async deleteRecord(identifier: string): Promise<void> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Delete record', modelId: identifier });
     try {
       await this.repository.delete(identifier);
@@ -106,6 +127,11 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async updateStatusRecord(identifier: string, payload: IUpdateStatus): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Update status record', modelId: identifier, status: payload.productStatus });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
