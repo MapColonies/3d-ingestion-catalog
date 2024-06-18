@@ -111,5 +111,5 @@ dist
 jest_html_reporters.html
 reports
 
-#generated files
+# generated files
 Schema

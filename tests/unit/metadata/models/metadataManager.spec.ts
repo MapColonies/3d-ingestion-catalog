@@ -78,9 +78,9 @@ describe('MetadataManager', () => {
       const payload = createPayload();
       repositoryMock.save.mockResolvedValue(payload);
 
-      const response = metadataManager.createRecord(payload);
+      const response = await metadataManager.createRecord(payload);
 
-      await expect(response).resolves.toStrictEqual(payload);
+      expect(response).toStrictEqual(payload);
     });
 
     it('resolves without errors if productId exists', async () => {

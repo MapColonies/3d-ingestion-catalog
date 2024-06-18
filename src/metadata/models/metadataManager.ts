@@ -2,7 +2,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
-import * as turf from '@turf/turf';
+import { bbox } from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
 import { Tracer } from '@opentelemetry/api';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
@@ -79,7 +79,6 @@ export class MetadataManager {
       }
       payload = formatStrings<IUpdatePayload>(payload);
       const updateMetadata: IUpdateMetadata = this.setPatchPayloadToEntity(payload);
-      record.footprint = JSON.parse(record.footprint as unknown as string) as turf.Polygon;
       const metadata: Metadata = { ...record, ...updateMetadata };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Updated record', modelId: identifier, modelName: payload.productName, payload });
@@ -156,7 +155,7 @@ export class MetadataManager {
 
     if (payload.footprint !== undefined) {
       metadata.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
-      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.productBoundingBox = bbox(payload.footprint).toString();
     }
 
     metadata.sensors = payload.sensors!.join(', ');
@@ -176,7 +175,7 @@ export class MetadataManager {
     }
 
     if (payload.footprint != undefined) {
-      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.productBoundingBox = bbox(payload.footprint).toString();
       metadata.wktGeometry = wkt.convert(payload.footprint);
     }
 

@@ -358,7 +358,7 @@ describe('MetadataController', function () {
         const updatedRecord = updateResponse.body as Metadata;
 
         expect(updateResponse.status).toBe(httpStatusCodes.OK);
-        expect(updatedRecord.footprint).toEqual(record.footprint);
+        expect(JSON.parse(String(updatedRecord.footprint))).toEqual(record.footprint);
       });
     });
 
