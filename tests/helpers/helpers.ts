@@ -1,7 +1,7 @@
 import RandExp from 'randexp';
 import { RecordType, ProductType, RecordStatus } from '@map-colonies/mc-model-types';
 import { faker } from '@faker-js/faker';
-import { Polygon, randomPolygon } from '@turf/turf';
+import { polygon, randomPolygon } from '@turf/turf';
 import { Metadata } from '../../src/DAL/entities/metadata';
 import { IUpdatePayload, IUpdateStatus } from '../../src/common/interfaces';
 import { IPayload } from '../../src/common/types';
@@ -30,20 +30,18 @@ const linksPattern = [
     url: 'http://test.test/wms',
   },
 ];
-const FOOTPRINT = {
-  coordinates: [
-    [
-      [minX, minY],
-      [minX, maxY],
-      [maxX, maxY],
-      [maxX, minY],
-      [minX, minY],
-    ],
+const FOOTPRINT = polygon([
+  [
+    [minX, minY],
+    [minX, maxY],
+    [maxX, maxY],
+    [maxX, minY],
+    [minX, minY],
   ],
-  type: 'Polygon',
-} as Polygon;
+]).geometry;
 
-function createFootprint(): Polygon {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function createFootprint() {
   return randomPolygon().features[0].geometry;
 }
 

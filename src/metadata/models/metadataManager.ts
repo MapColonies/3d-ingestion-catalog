@@ -2,8 +2,11 @@ import { Logger } from '@map-colonies/js-logger';
 import { inject, injectable } from 'tsyringe';
 import httpStatus from 'http-status-codes';
 import { Repository } from 'typeorm';
-import * as turf from '@turf/turf';
+import { bbox } from '@turf/turf';
 import wkt from 'terraformer-wkt-parser';
+import { Tracer, trace } from '@opentelemetry/api';
+import { THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
+import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../../common/constants';
 import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
 import { formatStrings, linksToString } from '../../common/utils/format';
@@ -14,10 +17,12 @@ import { Metadata } from '../../DAL/entities/metadata';
 @injectable()
 export class MetadataManager {
   public constructor(
-    @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>,
-    @inject(SERVICES.LOGGER) private readonly logger: Logger
+    @inject(SERVICES.LOGGER) private readonly logger: Logger,
+    @inject(SERVICES.TRACER) public readonly tracer: Tracer,
+    @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>
   ) {}
 
+  @withSpanAsyncV4
   public async getAll(): Promise<Metadata[] | undefined> {
     this.logger.debug({ msg: 'Get all models metadata' });
     try {
@@ -30,7 +35,13 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async getRecord(identifier: string): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Get metadata of record', modelId: identifier });
     try {
       const record = await this.repository.findOne(identifier);
@@ -48,7 +59,13 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async createRecord(payload: IPayload): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: payload.id,
+    });
+
     this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
     try {
       payload = formatStrings<IPayload>(payload);
@@ -62,7 +79,13 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async updateRecord(identifier: string, payload: IUpdatePayload): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, modelName: payload.productName, payload });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
@@ -72,7 +95,6 @@ export class MetadataManager {
       }
       payload = formatStrings<IUpdatePayload>(payload);
       const updateMetadata: IUpdateMetadata = this.setPatchPayloadToEntity(payload);
-      record.footprint = JSON.parse(record.footprint as unknown as string) as turf.Polygon;
       const metadata: Metadata = { ...record, ...updateMetadata };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
       this.logger.info({ msg: 'Updated record', modelId: identifier, modelName: payload.productName, payload });
@@ -86,7 +108,13 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async deleteRecord(identifier: string): Promise<void> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Delete record', modelId: identifier });
     try {
       await this.repository.delete(identifier);
@@ -97,7 +125,13 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async updateStatusRecord(identifier: string, payload: IUpdateStatus): Promise<Metadata> {
+    const spanActive = trace.getActiveSpan();
+    spanActive?.setAttributes({
+      [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
+    });
+
     this.logger.debug({ msg: 'Update status record', modelId: identifier, status: payload.productStatus });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
@@ -118,6 +152,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   public async findLastVersion(productId: string): Promise<number> {
     this.logger.debug({ msg: 'Get last product version', productId });
     try {
@@ -131,6 +166,7 @@ export class MetadataManager {
     }
   }
 
+  @withSpanAsyncV4
   private async setPostPayloadToEntity(payload: IPayload): Promise<Metadata> {
     const metadata: Metadata = new Metadata();
     Object.assign(metadata, payload);
@@ -145,7 +181,7 @@ export class MetadataManager {
 
     if (payload.footprint !== undefined) {
       metadata.wktGeometry = wkt.convert(payload.footprint as GeoJSON.Geometry);
-      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.productBoundingBox = bbox(payload.footprint).toString();
     }
 
     metadata.sensors = payload.sensors!.join(', ');
@@ -155,6 +191,7 @@ export class MetadataManager {
     return metadata;
   }
 
+  @withSpanV4
   private setPatchPayloadToEntity(payload: IUpdatePayload): IUpdateMetadata {
     const metadata: IUpdateMetadata = {};
     Object.assign(metadata, payload);
@@ -164,7 +201,7 @@ export class MetadataManager {
     }
 
     if (payload.footprint != undefined) {
-      metadata.productBoundingBox = turf.bbox(payload.footprint).toString();
+      metadata.productBoundingBox = bbox(payload.footprint).toString();
       metadata.wktGeometry = wkt.convert(payload.footprint);
     }
 

@@ -1,6 +1,7 @@
 import jsLogger from '@map-colonies/js-logger';
 import { QueryFailedError } from 'typeorm';
 import httpStatus from 'http-status-codes';
+import { trace } from '@opentelemetry/api';
 import { MetadataManager } from '../../../../src/metadata/models/metadataManager';
 import { createUuid, createMetadata, createPayload, createUpdatePayload, createUpdateStatus } from '../../../helpers/helpers';
 import { repositoryMock } from '../../../helpers/mockCreators';
@@ -10,7 +11,7 @@ let metadataManager: MetadataManager;
 
 describe('MetadataManager', () => {
   beforeEach(() => {
-    metadataManager = new MetadataManager(repositoryMock as never, jsLogger({ enabled: false }));
+    metadataManager = new MetadataManager(jsLogger({ enabled: false }), trace.getTracer('testTracer'), repositoryMock as never);
   });
 
   afterEach(() => {
@@ -77,9 +78,9 @@ describe('MetadataManager', () => {
       const payload = createPayload();
       repositoryMock.save.mockResolvedValue(payload);
 
-      const response = metadataManager.createRecord(payload);
+      const response = await metadataManager.createRecord(payload);
 
-      await expect(response).resolves.toStrictEqual(payload);
+      expect(response).toStrictEqual(payload);
     });
 
     it('resolves without errors if productId exists', async () => {
