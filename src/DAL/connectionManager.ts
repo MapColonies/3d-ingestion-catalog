@@ -1,21 +1,23 @@
-import config from 'config';
 import { createConnection, Connection } from 'typeorm';
 import { singleton } from 'tsyringe';
 import httpStatusCodes from 'http-status-codes';
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { DB_TIMEOUT } from '../common/constants';
 import { promiseTimeout } from '../common/utils/promiseTimeout';
 import { AppError } from '../common/appError';
-import { DbConfig } from '../common/interfaces';
-import { createConnectionOptions } from './createConnectionOptions';
+import { getConfig } from '../common/config';
+import { Metadata } from './entities/metadata';
 
 @singleton()
 export class ConnectionManager {
   private static instance: ConnectionManager | null = null;
   private connection: Connection | null = null;
-  private readonly connectionConfig: DbConfig;
+  private readonly connectionConfig: PostgresConnectionOptions;
 
   public constructor() {
-    this.connectionConfig = config.get<DbConfig>('db');
+    const configInstance = getConfig();
+    const {ssl, ...a} = configInstance.get('db');
+    this.connectionConfig = { ...a, type: "postgres", ssl: (ssl && ssl.enabled) ? ssl : undefined };
   }
 
   public static getInstance(): ConnectionManager {
@@ -39,7 +41,9 @@ export class ConnectionManager {
 
   public async initializeConnection(): Promise<void> {
     if (!this.connection) {
-      this.connection = await createConnection(createConnectionOptions(this.connectionConfig));
+      const ENTITIES_DIRS = [Metadata, 'src/DAL/entities/*.ts'];
+      
+      this.connection = await createConnection({ entities: ENTITIES_DIRS, ...this.connectionConfig });
       await this.connection.synchronize();
     }
   }

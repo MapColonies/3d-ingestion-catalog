@@ -12,7 +12,8 @@
     "password": "postgres",
     "database": "3d-catalog-manager-dev",
     "enableSslAuth": false,
-    "sslPaths": {
+    "ssl": {
+      "enabled": false,
       "ca": "",
       "key": "",
       "cert": ""
