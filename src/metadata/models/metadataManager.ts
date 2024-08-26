@@ -8,7 +8,7 @@ import { Tracer, trace } from '@opentelemetry/api';
 import { THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../../common/constants';
-import { IUpdateMetadata, IUpdatePayload, IUpdateStatus } from '../../common/interfaces';
+import { IUpdateMetadata, IUpdatePayload, IUpdateStatus, LogContext } from '../../common/interfaces';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
@@ -16,42 +16,74 @@ import { Metadata } from '../../DAL/entities/metadata';
 
 @injectable()
 export class MetadataManager {
+  private readonly logContext: LogContext;
+
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.TRACER) public readonly tracer: Tracer,
     @inject(SERVICES.METADATA_REPOSITORY) private readonly repository: Repository<Metadata>
-  ) {}
+  ) {
+    this.logContext = {
+      fileName: __filename,
+      class: MetadataManager.name,
+    };
+  }
 
   @withSpanAsyncV4
   public async getAll(): Promise<Metadata[] | undefined> {
-    this.logger.debug({ msg: 'Get all models metadata' });
+    const logContext = { ...this.logContext, function: this.getAll.name };
+    this.logger.debug({
+      msg: 'Get all models metadata',
+      logContext,
+    });
     try {
       const records = await this.repository.find();
-      this.logger.info({ msg: 'Got all records' });
+      this.logger.info({
+        msg: 'Got all records',
+        logContext,
+      });
       return records;
     } catch (error) {
-      this.logger.error({ msg: 'Failed to get all records', error });
+      this.logger.error({
+        msg: 'Failed to get all records',
+        logContext,
+        error,
+      });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
   @withSpanAsyncV4
   public async getRecord(identifier: string): Promise<Metadata> {
+    const logContext = { ...this.logContext, function: this.getRecord.name };
     const spanActive = trace.getActiveSpan();
     spanActive?.setAttributes({
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
     });
 
-    this.logger.debug({ msg: 'Get metadata of record', modelId: identifier });
+    this.logger.debug({
+      msg: 'Get metadata of record',
+      logContext,
+      modelId: identifier,
+    });
     try {
       const record = await this.repository.findOne(identifier);
       if (record === undefined) {
         throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
-      this.logger.info({ msg: 'Got metadata ', modelId: identifier });
+      this.logger.info({
+        msg: 'Got metadata ',
+        logContext,
+        modelId: identifier,
+      });
       return record;
     } catch (error) {
-      this.logger.error({ msg: 'Failed to get metadata', modelId: identifier, error });
+      this.logger.error({
+        msg: 'Failed to get metadata',
+        logContext,
+        modelId: identifier,
+        error,
+      });
       if (error instanceof AppError) {
         throw error;
       }
@@ -61,46 +93,91 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async createRecord(payload: IPayload): Promise<Metadata> {
+    const logContext = { ...this.logContext, function: this.createRecord.name };
     const spanActive = trace.getActiveSpan();
     spanActive?.setAttributes({
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: payload.id,
     });
 
-    this.logger.debug({ msg: 'create new record', modelId: payload.id, modelName: payload.productName, payload });
+    this.logger.debug({
+      msg: 'create new record',
+      logContext,
+      modelId: payload.id,
+      modelName: payload.productName,
+      payload,
+    });
     try {
       payload = formatStrings<IPayload>(payload);
       const metadata = await this.setPostPayloadToEntity(payload);
       const newRecord: Metadata = await this.repository.save(metadata);
-      this.logger.info({ msg: 'Saved new record', modelId: payload.id, modelName: payload.productName, payload });
+      this.logger.info({
+        msg: 'Saved new record',
+        logContext,
+        modelId: payload.id,
+        modelName: payload.productName,
+        payload,
+      });
       return newRecord;
     } catch (error) {
-      this.logger.error({ msg: 'Saving new record failed', modelId: payload.id, modelName: payload.productName, error, payload });
+      this.logger.error({
+        msg: 'Saving new record failed',
+        logContext,
+        modelId: payload.id,
+        modelName: payload.productName,
+        error,
+        payload,
+      });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
   @withSpanAsyncV4
   public async updateRecord(identifier: string, payload: IUpdatePayload): Promise<Metadata> {
+    const logContext = { ...this.logContext, function: this.updateRecord.name };
     const spanActive = trace.getActiveSpan();
     spanActive?.setAttributes({
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
     });
 
-    this.logger.debug({ msg: 'Update partial metadata', modelId: identifier, modelName: payload.productName, payload });
+    this.logger.debug({
+      msg: 'Update partial metadata',
+      logContext,
+      modelId: identifier,
+      modelName: payload.productName,
+      payload,
+    });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
-        this.logger.error({ msg: 'model identifier not found', modelId: identifier, modelName: payload.productName });
+        this.logger.error({
+          msg: 'model identifier not found',
+          logContext,
+          modelId: identifier,
+          modelName: payload.productName,
+        });
         throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
       payload = formatStrings<IUpdatePayload>(payload);
       const updateMetadata: IUpdateMetadata = this.setPatchPayloadToEntity(payload);
       const metadata: Metadata = { ...record, ...updateMetadata };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
-      this.logger.info({ msg: 'Updated record', modelId: identifier, modelName: payload.productName, payload });
+      this.logger.info({
+        msg: 'Updated record',
+        logContext,
+        modelId: identifier,
+        modelName: payload.productName,
+        payload,
+      });
       return updatedMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'Error saving update of record', modelId: identifier, modelName: payload.productName, error, payload });
+      this.logger.error({
+        msg: 'Error saving update of record',
+        logContext,
+        modelId: identifier,
+        modelName: payload.productName,
+        error,
+        payload,
+      });
       if (error instanceof AppError) {
         throw error;
       }
@@ -110,41 +187,76 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async deleteRecord(identifier: string): Promise<void> {
+    const logContext = { ...this.logContext, function: this.deleteRecord.name };
     const spanActive = trace.getActiveSpan();
     spanActive?.setAttributes({
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
     });
 
-    this.logger.debug({ msg: 'Delete record', modelId: identifier });
+    this.logger.debug({
+      msg: 'Delete record',
+      logContext,
+      modelId: identifier,
+    });
     try {
       await this.repository.delete(identifier);
-      this.logger.info({ msg: 'Deleted record', modelId: identifier });
+      this.logger.info({
+        msg: 'Deleted record',
+        logContext,
+        modelId: identifier,
+      });
     } catch (error) {
-      this.logger.error({ msg: 'Failed to delete record', modelId: identifier, error });
+      this.logger.error({
+        msg: 'Failed to delete record',
+        logContext,
+        modelId: identifier,
+        error,
+      });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }
 
   @withSpanAsyncV4
   public async updateStatusRecord(identifier: string, payload: IUpdateStatus): Promise<Metadata> {
+    const logContext = { ...this.logContext, function: this.updateStatusRecord.name };
     const spanActive = trace.getActiveSpan();
     spanActive?.setAttributes({
       [THREE_D_CONVENTIONS.three_d.catalogManager.catalogId]: identifier,
     });
 
-    this.logger.debug({ msg: 'Update status record', modelId: identifier, status: payload.productStatus });
+    this.logger.debug({
+      msg: 'Update status record',
+      logContext,
+      modelId: identifier,
+      status: payload.productStatus,
+    });
     try {
       const record: Metadata | undefined = await this.repository.findOne(identifier);
       if (record === undefined) {
-        this.logger.error({ msg: 'model identifier not found', modelId: identifier });
+        this.logger.error({
+          msg: 'model identifier not found',
+          logContext,
+          modelId: identifier,
+        });
         throw new AppError('NOT_FOUND', httpStatus.NOT_FOUND, `Identifier ${identifier} wasn't found on DB`, true);
       }
       const metadata: Metadata = { ...record, productStatus: payload.productStatus };
       const updatedMetadata: Metadata = await this.repository.save(metadata);
-      this.logger.info({ msg: 'Updated record', modelId: identifier, payload });
+      this.logger.info({
+        msg: 'Updated record',
+        logContext,
+        modelId: identifier,
+        payload,
+      });
       return updatedMetadata;
     } catch (error) {
-      this.logger.error({ msg: 'Error saving update of record', modelId: identifier, payload, error });
+      this.logger.error({
+        msg: 'Error saving update of record',
+        logContext,
+        modelId: identifier,
+        payload,
+        error,
+      });
       if (error instanceof AppError) {
         throw error;
       }
@@ -154,14 +266,29 @@ export class MetadataManager {
 
   @withSpanAsyncV4
   public async findLastVersion(productId: string): Promise<number> {
-    this.logger.debug({ msg: 'Get last product version', productId });
+    const logContext = { ...this.logContext, function: this.findLastVersion.name };
+    this.logger.debug({
+      msg: 'Get last product version',
+      logContext,
+      productId,
+    });
     try {
       const metadata: Metadata | undefined = await this.repository.findOne({ where: { productId }, order: { productVersion: 'DESC' } });
       const version = metadata !== undefined ? metadata.productVersion : 0;
-      this.logger.info({ msg: 'Got latest model version', modelId: metadata?.id, version });
+      this.logger.info({
+        msg: 'Got latest model version',
+        logContext,
+        modelId: metadata?.id,
+        version,
+      });
       return version;
     } catch (error) {
-      this.logger.error({ msg: 'Error in retrieving latest model version', productId, error });
+      this.logger.error({
+        msg: 'Error in retrieving latest model version',
+        logContext,
+        productId,
+        error,
+      });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
   }

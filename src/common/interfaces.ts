@@ -64,3 +64,9 @@ export interface IUpdateMetadata extends IUpdate {
 export interface IUpdateStatus {
   productStatus: RecordStatus;
 }
+
+export interface LogContext {
+  fileName: string;
+  class: string;
+  function?: string;
+}
