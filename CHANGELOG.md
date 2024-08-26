@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.3.1](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.3.0...v5.3.1) (2024-08-26)
+
 ## [2.0.0](https://github.com/MapColonies/3d-ingestion-catalog/compare/v1.2.2...v2.0.0) (2021-11-24)
 
 
