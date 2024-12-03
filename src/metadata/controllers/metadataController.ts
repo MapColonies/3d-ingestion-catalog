@@ -39,13 +39,13 @@ export class MetadataController {
         return res.sendStatus(httpStatus.NO_CONTENT);
       }
       return res.status(httpStatus.OK).json(metadataList);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: `Couldn't get all records`,
         logContext,
-        error,
+        err,
       });
-      return next(error);
+      return next(err);
     }
   };
 
@@ -55,13 +55,13 @@ export class MetadataController {
     try {
       const metadata: Metadata = await this.manager.getRecord(identifier);
       return res.status(httpStatus.OK).json(metadata);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: `Couldn't get record`,
         logContext,
-        error,
+        err,
       });
-      return next(error);
+      return next(err);
     }
   };
 
@@ -71,13 +71,13 @@ export class MetadataController {
     try {
       const version: number = await this.manager.findLastVersion(identifier);
       return res.status(httpStatus.OK).json(version);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: `Couldn't find last version of productID`,
         logContext,
-        error,
+        err,
       });
-      return next(error);
+      return next(err);
     }
   };
 
@@ -87,13 +87,13 @@ export class MetadataController {
     try {
       const createdMetadata = await this.manager.createRecord(payload);
       return res.status(httpStatus.CREATED).json(createdMetadata);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: `Couldn't post record`,
         logContext,
-        error,
+        err,
       });
-      return next(error);
+      return next(err);
     }
   };
 
@@ -104,13 +104,13 @@ export class MetadataController {
       const payload: IUpdatePayload = req.body;
       const updatedPartialMetadata = await this.manager.updateRecord(identifier, payload);
       return res.status(httpStatus.OK).json(updatedPartialMetadata);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: `Couldn't patch record`,
         logContext,
-        error,
+        err,
       });
-      return next(error);
+      return next(err);
     }
   };
 
@@ -120,13 +120,13 @@ export class MetadataController {
       const { identifier } = req.params;
       await this.manager.deleteRecord(identifier);
       return res.sendStatus(httpStatus.NO_CONTENT);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: `Couldn't delete record`,
         logContext,
-        error,
+        err,
       });
-      return next(error);
+      return next(err);
     }
   };
 
@@ -137,13 +137,13 @@ export class MetadataController {
       const payload: IUpdateStatus = req.body;
       const record = await this.manager.updateStatusRecord(identifier, payload);
       return res.status(httpStatus.OK).json(record);
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: `Couldn't patch status of record`,
         logContext,
-        error,
+        err,
       });
-      return next(error);
+      return next(err);
     }
   };
 }

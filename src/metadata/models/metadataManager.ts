@@ -43,11 +43,11 @@ export class MetadataManager {
         logContext,
       });
       return records;
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Failed to get all records',
         logContext,
-        error,
+        err,
       });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
@@ -77,15 +77,15 @@ export class MetadataManager {
         modelId: identifier,
       });
       return record;
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Failed to get metadata',
         logContext,
         modelId: identifier,
-        error,
+        err,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (err instanceof AppError) {
+        throw err;
       }
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
@@ -118,13 +118,13 @@ export class MetadataManager {
         payload,
       });
       return newRecord;
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Saving new record failed',
         logContext,
         modelId: payload.id,
         modelName: payload.productName,
-        error,
+        err,
         payload,
       });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
@@ -169,17 +169,17 @@ export class MetadataManager {
         payload,
       });
       return updatedMetadata;
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Error saving update of record',
         logContext,
         modelId: identifier,
         modelName: payload.productName,
-        error,
+        err,
         payload,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (err instanceof AppError) {
+        throw err;
       }
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
@@ -205,12 +205,12 @@ export class MetadataManager {
         logContext,
         modelId: identifier,
       });
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Failed to delete record',
         logContext,
         modelId: identifier,
-        error,
+        err,
       });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
@@ -249,16 +249,16 @@ export class MetadataManager {
         payload,
       });
       return updatedMetadata;
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Error saving update of record',
         logContext,
         modelId: identifier,
         payload,
-        error,
+        err,
       });
-      if (error instanceof AppError) {
-        throw error;
+      if (err instanceof AppError) {
+        throw err;
       }
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
@@ -282,12 +282,12 @@ export class MetadataManager {
         version,
       });
       return version;
-    } catch (error) {
+    } catch (err) {
       this.logger.error({
         msg: 'Error in retrieving latest model version',
         logContext,
         productId,
-        error,
+        err,
       });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
