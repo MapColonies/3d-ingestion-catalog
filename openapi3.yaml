@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: 3d ingestion catalog
   description: Service to create 3d ingestion catalog
-  version: 5.3.3
+  version: 5.3.4
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

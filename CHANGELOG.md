@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.3.4](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.3.3...v5.3.4) (2025-01-13)
+
+
+### Bug Fixes
+
+* support 3D coordinate ([#64](https://github.com/MapColonies/3d-ingestion-catalog/issues/64)) ([f9249c4](https://github.com/MapColonies/3d-ingestion-catalog/commit/f9249c49f4ce51f1cbb334a64ef535eba72f26b6))
+
 ### [5.3.3](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.3.2...v5.3.3) (2024-12-03)
 
 ### [5.3.2](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.3.1...v5.3.2) (2024-09-09)
