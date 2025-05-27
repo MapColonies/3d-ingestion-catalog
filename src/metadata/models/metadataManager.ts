@@ -8,7 +8,7 @@ import { Tracer, trace } from '@opentelemetry/api';
 import { THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
 import { SERVICES } from '../../common/constants';
-import { IUpdateMetadata, IUpdatePayload, IUpdateStatus, LogContext } from '../../common/interfaces';
+import { IFindRecordsPayload, IUpdateMetadata, IUpdatePayload, IUpdateStatus, LogContext } from '../../common/interfaces';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
@@ -51,6 +51,77 @@ export class MetadataManager {
       });
       throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
     }
+  }
+
+  @withSpanAsyncV4
+  public async findRecords(payload: IFindRecordsPayload): Promise<Metadata[]> {
+    const logContext = { ...this.logContext, function: this.findRecords.name };
+    this.logger.debug({
+      msg: 'Find Records metadata',
+      logContext,
+    });
+    try {
+        const records = await this.internalFindRecords(payload);
+        this.logger.info({
+          msg: 'Got all records',
+          logContext,
+        });
+        return records;
+    } catch (err) {
+      this.logger.error({
+        msg: 'Failed to get all records',
+        logContext,
+        err,
+      });
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
+    }
+  }
+
+  private findModelToEntity(model: IFindRecordsPayload): Partial<Metadata> {
+    const entity = {} as Metadata;
+    if (model.absoluteAccuracyLE90 !== undefined) {
+      entity.absoluteAccuracyLE90 = model.absoluteAccuracyLE90;
+    }
+    if (model.accuracySE90 !== undefined) {
+      entity.accuracySE90 = model.accuracySE90;
+    }
+    if (model.classification !== undefined) {
+      entity.classification = model.classification;
+    }
+    
+    if (model.id !== undefined) {
+      entity.id = model.id;
+    }
+    if (model.links != undefined) {
+      entity.links = this.linksToString(model.links);
+    }
+    return entity;
+  }
+
+  private async internalFindRecords(payload: IFindRecordsPayload): Promise<Metadata[]> {
+    const entity = this.findModelToEntity(req);
+    const query = this.repository.createQueryBuilder('records');
+    
+    const baseConditions = { ...entity };
+    if (entity.productId != null) {
+      delete baseConditions.productId;
+    }
+    if (entity.productType != null) {
+      delete baseConditions.productType;
+    }
+
+    // Apply base conditions to the query
+    query.where(baseConditions);
+    if (entity.productId != null) {
+      query.andWhere('LOWER(record.productId) = LOWER(:productId)', { productId: entity.productId });
+    }
+
+    if (entity.productType != null) {
+      query.andWhere('LOWER(record.productType) = LOWER(:productType)', { productType: entity.productType });
+    }
+
+    const res = await query.getMany();
+    return res.map((entity) => this.recordConvertor.entityToModel(entity));
   }
 
   @withSpanAsyncV4

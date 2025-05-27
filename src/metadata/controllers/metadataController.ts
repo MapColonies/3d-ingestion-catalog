@@ -5,13 +5,14 @@ import { injectable, inject } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { MetadataManager } from '../models/metadataManager';
 import { Metadata } from '../../DAL/entities/metadata';
-import { IUpdatePayload, IUpdateStatus, LogContext, MetadataParams } from '../../common/interfaces';
+import { IFindRecordsPayload, IUpdatePayload, IUpdateStatus, LogContext, MetadataParams } from '../../common/interfaces';
 import { IPayload } from '../../common/types';
 
 type GetAllRequestHandler = RequestHandler<undefined, Metadata[]>;
 type GetRequestHandler = RequestHandler<MetadataParams, Metadata, number>;
 type FindLastVersionRequestHandler = RequestHandler<MetadataParams, number, number>;
 type CreateRequestHandler = RequestHandler<undefined, Metadata, IPayload>;
+type FindRecordsRequestHandler = RequestHandler<undefined, Metadata[], IFindRecordsPayload>;
 type UpdatePartialRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdatePayload>;
 type DeleteRequestHandler = RequestHandler<MetadataParams>;
 type UpdateStatusRequestHandler = RequestHandler<MetadataParams, Metadata, IUpdateStatus>;
@@ -90,6 +91,22 @@ export class MetadataController {
     } catch (err) {
       this.logger.error({
         msg: `Couldn't post record`,
+        logContext,
+        err,
+      });
+      return next(err);
+    }
+  };
+
+  public findRecords: FindRecordsRequestHandler = async (req, res, next) => {
+    const logContext = { ...this.logContext, function: this.findRecords.name };
+    try {
+      const payload: IFindRecordsPayload = req.body;
+      const metadataList = await this.manager.findRecords(payload);
+      return res.status(httpStatus.OK).json(metadataList);
+    } catch (err) {
+      this.logger.error({
+        msg: `Find records failed`,
         logContext,
         err,
       });

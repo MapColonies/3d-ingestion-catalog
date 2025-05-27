@@ -34,11 +34,11 @@
   },
   "db": {
     "type": "postgres",
-    "host": "127.0.0.1",
+    "host": "10.0.4.4",
     "port": 5432,
     "username": "postgres",
-    "password": "postgres",
-    "database": "3d-catalog-manager-dev",
+    "password": "Libot4allnonprod",
+    "database": "3D_Tests",
     "enableSslAuth": false,
     "sslPaths": {
       "ca": "",
