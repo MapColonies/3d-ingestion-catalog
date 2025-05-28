@@ -1,5 +1,5 @@
 import * as supertest from 'supertest';
-import { IUpdatePayload, IUpdateStatus } from '../../../../src/common/interfaces';
+import { IFindRecordsPayload, IUpdatePayload, IUpdateStatus } from '../../../../src/common/interfaces';
 import { IPayload } from '../../../../src/common/types';
 
 export class MetadataRequestSender {
@@ -7,6 +7,10 @@ export class MetadataRequestSender {
 
   public async getAll(): Promise<supertest.Response> {
     return supertest.agent(this.app).get('/metadata').set('Content-Type', 'application/json');
+  }
+
+  public async find(payload: IFindRecordsPayload): Promise<supertest.Response> {
+    return supertest.agent(this.app).post('/metadata/find').set('Content-Type', 'application/json').send(payload);
   }
 
   public async getRecord(identifier: string): Promise<supertest.Response> {

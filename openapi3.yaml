@@ -204,7 +204,6 @@ components:
         productId:
           type: string
           nullable: true
-          default: null
           description: ID of product
         productName:
           type: string
@@ -296,7 +295,6 @@ components:
         srsName:
           type: string
           description: Name of the srsID
-          default: 'WGS84GEO'
         classification:
           type: string
           example: '5'
@@ -311,7 +309,6 @@ components:
         producerName:
           type: string
           description: The name of the producer (product owner)
-          default: 'IDFMU'
         minFlightAlt:
           type: number
           format: double
@@ -330,7 +327,6 @@ components:
           enum:
             - UNPUBLISHED
             - PUBLISHED
-          default: 'UNPUBLISHED'
           description: The status of the model
       additionalProperties: false
     error:

@@ -4,7 +4,7 @@ import httpStatus from 'http-status-codes';
 import { trace } from '@opentelemetry/api';
 import { MetadataManager } from '../../../../src/metadata/models/metadataManager';
 import { createUuid, createMetadata, createPayload, createUpdatePayload, createUpdateStatus } from '../../../helpers/helpers';
-import { repositoryMock } from '../../../helpers/mockCreators';
+import { repositoryMock, queryMock } from '../../../helpers/mockCreators';
 import { AppError } from '../../../../src/common/appError';
 
 let metadataManager: MetadataManager;
@@ -16,6 +16,8 @@ describe('MetadataManager', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('getAll tests', () => {
@@ -215,6 +217,53 @@ describe('MetadataManager', () => {
       repositoryMock.findOne.mockRejectedValue(new QueryFailedError('select *', [], new Error()));
 
       const response = metadataManager.findLastVersion(metadata.productId);
+
+      await expect(response).rejects.toThrow(new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true));
+    });
+  });
+
+  describe('findRecords tests', () => {
+    it('returns record if paramters are included', async () => {
+      const metadata = createMetadata();
+      repositoryMock.createQueryBuilder.mockReturnValue(queryMock);
+      queryMock.where.mockImplementation();
+      queryMock.andWhere.mockImplementation();
+      queryMock.getMany.mockResolvedValue([metadata]);
+
+      const response = await metadataManager.findRecords({
+        absoluteAccuracyLE90: metadata.absoluteAccuracyLE90,
+        accuracySE90: metadata.accuracySE90,
+        id: metadata.id,
+        producerName: metadata.producerName,
+        productName: metadata.producerName,
+        classification: metadata.classification,
+        maxResolutionMeter: metadata.maxResolutionMeter,
+        minResolutionMeter: metadata.minResolutionMeter,
+      });
+      expect(response[0]).toBe(metadata);
+    });
+
+    it('returns empty array if productName is not exists', async () => {
+      const metadata = createMetadata();
+      repositoryMock.createQueryBuilder.mockReturnValue(queryMock);
+      queryMock.where.mockImplementation();
+      queryMock.andWhere.mockImplementation();
+      queryMock.getMany.mockResolvedValue([]);
+
+      const response = await metadataManager.findRecords({
+        productName: metadata.productName + 'a',
+      });
+
+      expect(response).toEqual([]);
+    });
+
+    it('rejects on DB error', async () => {
+      const metadata = createMetadata();
+      repositoryMock.createQueryBuilder.mockReturnValue(new QueryFailedError('select *', [], new Error()));
+
+      const response = metadataManager.findRecords({
+        productName: metadata.productName,
+      });
 
       await expect(response).rejects.toThrow(new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true));
     });
