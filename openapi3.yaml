@@ -54,11 +54,7 @@ paths:
         '200':
           $ref: '#/components/responses/list'
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/responses/badRequest'
+          $ref: '#/components/responses/badRequest'
         '500':
           $ref: '#/components/responses/unexpectedError'
   /metadata/lastVersion/{identifier}:
