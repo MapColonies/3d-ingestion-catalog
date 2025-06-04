@@ -7,8 +7,9 @@ import wkt from 'terraformer-wkt-parser';
 import { Tracer, trace } from '@opentelemetry/api';
 import { THREE_D_CONVENTIONS } from '@map-colonies/telemetry/conventions';
 import { withSpanAsyncV4, withSpanV4 } from '@map-colonies/telemetry';
+import { RecordStatus } from '@map-colonies/mc-model-types';
 import { SERVICES } from '../../common/constants';
-import { IUpdateMetadata, IUpdatePayload, IUpdateStatus, LogContext } from '../../common/interfaces';
+import { IFindRecordsPayload, IUpdateMetadata, IUpdatePayload, IUpdateStatus, LogContext } from '../../common/interfaces';
 import { formatStrings, linksToString } from '../../common/utils/format';
 import { AppError } from '../../common/appError';
 import { IPayload } from '../../common/types';
@@ -38,6 +39,30 @@ export class MetadataManager {
     });
     try {
       const records = await this.repository.find();
+      this.logger.info({
+        msg: 'Got all records',
+        logContext,
+      });
+      return records;
+    } catch (err) {
+      this.logger.error({
+        msg: 'Failed to get all records',
+        logContext,
+        err,
+      });
+      throw new AppError('Internal', httpStatus.INTERNAL_SERVER_ERROR, 'Problem with the DB', true);
+    }
+  }
+
+  @withSpanAsyncV4
+  public async findRecords(payload: IFindRecordsPayload): Promise<Metadata[]> {
+    const logContext = { ...this.logContext, function: this.findRecords.name };
+    this.logger.debug({
+      msg: 'Find Records metadata',
+      logContext,
+    });
+    try {
+      const records = await this.internalFindRecords(payload);
       this.logger.info({
         msg: 'Got all records',
         logContext,
@@ -333,5 +358,102 @@ export class MetadataManager {
     }
 
     return metadata;
+  }
+
+  private findModelToEntity(payload: IFindRecordsPayload): Partial<Metadata> {
+    const entity = {} as Metadata;
+    if (payload.absoluteAccuracyLE90 !== undefined) {
+      entity.absoluteAccuracyLE90 = payload.absoluteAccuracyLE90;
+    }
+    if (payload.accuracySE90 !== undefined) {
+      entity.accuracySE90 = payload.accuracySE90;
+    }
+    if (payload.classification !== undefined) {
+      entity.classification = payload.classification;
+    }
+    if (payload.creationDate !== undefined) {
+      entity.creationDate = new Date(payload.creationDate);
+    }
+    if (payload.geographicArea !== undefined) {
+      entity.geographicArea = payload.geographicArea;
+    }
+    if (payload.heightRangeFrom !== undefined) {
+      entity.heightRangeFrom = payload.heightRangeFrom;
+    }
+    if (payload.heightRangeTo !== undefined) {
+      entity.heightRangeTo = payload.heightRangeTo;
+    }
+    if (payload.id !== undefined) {
+      entity.id = payload.id;
+    }
+    if (payload.maxAccuracyCE90 !== undefined) {
+      entity.maxAccuracyCE90 = payload.maxAccuracyCE90;
+    }
+    if (payload.maxFlightAlt !== undefined) {
+      entity.maxFlightAlt = payload.maxFlightAlt;
+    }
+    if (payload.maxResolutionMeter !== undefined) {
+      entity.maxResolutionMeter = payload.maxResolutionMeter;
+    }
+    if (payload.minFlightAlt !== undefined) {
+      entity.minFlightAlt = payload.minFlightAlt;
+    }
+    if (payload.minResolutionMeter !== undefined) {
+      entity.minResolutionMeter = payload.minResolutionMeter;
+    }
+    if (payload.producerName !== undefined) {
+      entity.producerName = payload.producerName;
+    }
+    if (payload.productId !== undefined) {
+      entity.productId = payload.productId;
+    }
+    if (payload.productName !== undefined) {
+      entity.productName = payload.productName;
+    }
+    if (payload.productStatus !== undefined) {
+      entity.productStatus = payload.productStatus as RecordStatus;
+    }
+    if (payload.productType !== undefined) {
+      entity.productType = payload.productType;
+    }
+    if (payload.productionSystem !== undefined) {
+      entity.productionSystem = payload.productionSystem;
+    }
+    if (payload.productionSystemVer !== undefined) {
+      entity.productionSystemVer = payload.productionSystemVer;
+    }
+    if (payload.relativeAccuracySE90 !== undefined) {
+      entity.relativeAccuracySE90 = payload.relativeAccuracySE90;
+    }
+    if (payload.sourceDateEnd !== undefined) {
+      entity.sourceDateEnd = new Date(payload.sourceDateEnd);
+    }
+    if (payload.sourceDateStart !== undefined) {
+      entity.sourceDateStart = new Date(payload.sourceDateStart);
+    }
+    if (payload.srsId !== undefined) {
+      entity.srsId = payload.srsId;
+    }
+    if (payload.srsName !== undefined) {
+      entity.srsName = payload.srsName;
+    }
+    if (payload.visualAccuracy !== undefined) {
+      entity.visualAccuracy = payload.visualAccuracy;
+    }
+    return entity;
+  }
+
+  private async internalFindRecords(payload: IFindRecordsPayload): Promise<Metadata[]> {
+    const entity = this.findModelToEntity(payload);
+    const query = this.repository.createQueryBuilder('record');
+
+    const baseConditions = { ...entity };
+    // Apply base conditions to the query
+    query.where(baseConditions);
+    if (entity.productType != null) {
+      query.andWhere('LOWER(record.productType) = LOWER(:productType)', { productType: entity.productType });
+    }
+    const res = await query.getMany();
+    return res;
   }
 }

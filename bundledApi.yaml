@@ -2,10 +2,11 @@ openapi: 3.0.1
 info:
   title: 3d ingestion catalog
   description: Service to create 3d ingestion catalog
-  version: 5.3.3
+  version: 5.3.5
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
+security: []
 paths:
   /metadata:
     get:
@@ -36,6 +37,25 @@ paths:
         '400':
           $ref: '#/components/responses/badRequest'
         5XX:
+          $ref: '#/components/responses/unexpectedError'
+  /metadata/find:
+    post:
+      operationId: findRecords
+      summary: return list of 3d model matching records
+      tags:
+        - metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/findRecordPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/list'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '500':
           $ref: '#/components/responses/unexpectedError'
   /metadata/lastVersion/{identifier}:
     get:
@@ -165,6 +185,144 @@ components:
           schema:
             $ref: '#/components/schemas/error'
   schemas:
+    recordId:
+      type: string
+      format: uuid
+      description: Id of product
+    findRecordPayload:
+      type: object
+      description: 3d-tiles metadata find record payload
+      properties:
+        id:
+          $ref: '#/components/schemas/recordId'
+        productId:
+          type: string
+          nullable: true
+          description: ID of product
+        productName:
+          type: string
+          maxLength: 120
+          description: Name of product
+        productType:
+          type: string
+          enum:
+            - 3DPhotoRealistic
+            - QuantizedMeshDTMBest
+          description: Type of product (3DPhotoRealistic)
+          example: 3DPhotoRealistic
+        creationDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Creation date
+        sourceDateStart:
+          type: string
+          format: date-time
+          description: Oldest date of taken photo
+        sourceDateEnd:
+          type: string
+          format: date-time
+          description: Newest date of taken photo
+        minResolutionMeter:
+          type: number
+          format: double
+          nullable: true
+          example: 1.1
+          minimum: 0.01
+          maximum: 8000
+          description: Minimum resolution in meters
+        maxResolutionMeter:
+          type: number
+          format: double
+          nullable: true
+          example: 1.5
+          minimum: 0.01
+          maximum: 8000
+          description: Maximum resolution in meters
+        maxAccuracyCE90:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 999
+          description: Maximum absolute horizontal accuracy
+        absoluteAccuracyLE90:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 999
+          description: Absolute vertical accuracy
+        accuracySE90:
+          type: number
+          format: double
+          minimum: 0
+          nullable: true
+          maximum: 250
+          description: Absolute spherical accuracy
+        relativeAccuracySE90:
+          type: number
+          format: double
+          nullable: true
+          minimum: 0
+          maximum: 100
+          description: Relative vertical accuracy
+        visualAccuracy:
+          type: number
+          format: double
+          nullable: true
+          minimum: 0
+          maximum: 100
+          description: Measure of visual quality
+        heightRangeFrom:
+          type: number
+          format: double
+          nullable: true
+          description: Minimum height range of ground
+        heightRangeTo:
+          type: number
+          format: double
+          nullable: true
+          description: Maximum height range of ground
+        srsId:
+          type: string
+          example: 4326
+          description: ID of srs
+        srsName:
+          type: string
+          description: Name of the srsID
+        classification:
+          type: string
+          example: '5'
+          description: Classification of the product
+        productionSystem:
+          type: string
+          description: Production system
+        productionSystemVer:
+          type: string
+          maxLength: 20
+          description: Version production system
+        producerName:
+          type: string
+          description: The name of the producer (product owner)
+        minFlightAlt:
+          type: number
+          format: double
+          description: Minimum height of the flight
+        maxFlightAlt:
+          type: number
+          nullable: true
+          format: double
+          description: Maximum height of the flight
+        geographicArea:
+          type: string
+          nullable: true
+          description: Area inside the region
+        productStatus:
+          type: string
+          enum:
+            - UNPUBLISHED
+            - PUBLISHED
+          description: The status of the model
+      additionalProperties: false
     error:
       type: object
       required:
@@ -528,8 +686,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/Geometry'
             - description: Geographic demarcation of the product
-            - example: >-
-                {"type":"Polygon","coordinates":[[[1,2],[3,4],[5,6],[7,8],[1,2]]]}
+            - example: '{"type":"Polygon","coordinates":[[[1,2],[3,4],[5,6],[7,8],[1,2]]]}'
         heightRangeFrom:
           type: number
           format: double
@@ -660,8 +817,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/Geometry'
             - description: Geographic demarcation of the product
-            - example: >-
-                {"type":"Polygon","coordinates":[[[1,2],[3,4],[5,6],[7,8],[1,2]]]}
+            - example: '{"type":"Polygon","coordinates":[[[1,2],[3,4],[5,6],[7,8],[1,2]]]}'
         minResolutionMeter:
           type: number
           format: double

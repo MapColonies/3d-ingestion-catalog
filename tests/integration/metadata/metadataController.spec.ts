@@ -5,7 +5,7 @@ import { register } from 'prom-client';
 import { Metadata } from '../../../src/DAL/entities/metadata';
 import { createUuid, createMetadata, createPayload, createUpdatePayload, createUpdateStatus } from '../../helpers/helpers';
 import { SERVICES } from '../../../src/common/constants';
-import { IUpdatePayload, IUpdateStatus } from '../../../src/common/interfaces';
+import { IFindRecordsPayload, IUpdatePayload, IUpdateStatus } from '../../../src/common/interfaces';
 import { IPayload } from '../../../src/common/types';
 import { repositoryMock } from '../../helpers/mockCreators';
 import { getApp } from '../../../src/app';
@@ -70,6 +70,72 @@ describe('MetadataController', function () {
         repositoryMock.find.mockRejectedValue(new Error());
 
         const response = await requestSender.getAll();
+
+        expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.body).toHaveProperty('message', 'Problem with the DB');
+      });
+    });
+  });
+
+  describe('POST /metadata/find', function () {
+    describe('Happy Path 🙂', function () {
+      it('should return 200 status code and empty array if there are no metadata records', async function () {
+        const payload = createPayload();
+        await requestSender.createRecord(payload);
+        const response = await requestSender.find({ productName: payload.productName + '_test' });
+        expect(response.status).toBe(httpStatusCodes.OK);
+        expect(response.body).toEqual([]);
+        expect(response.body).toHaveLength(0);
+      });
+
+      it('should return 200 status code and a metadata records list that matches the find payload', async function () {
+        const payload = createPayload();
+        const createResponse = await requestSender.createRecord(payload);
+        const response = await requestSender.find({ productName: payload.productName });
+        expect(response.status).toBe(httpStatusCodes.OK);
+        expect(response.body).toHaveLength(1);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete createResponse.body?.footprint;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete response.body[0]?.footprint;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(createResponse.body).toEqual(response.body[0]);
+      });
+    });
+
+    describe('Bad Path 😡', function () {
+      it('should return 500 status code if a db exception happens', async function () {
+        const app = await getApp({
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
+          useChild: true,
+        });
+        requestSender = new MetadataRequestSender(app);
+        const response = await requestSender.find({ bla: 1 } as IFindRecordsPayload);
+
+        expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
+        expect(response.body).toHaveProperty('message', 'request/body must NOT have additional properties');
+      });
+    });
+
+    describe('Sad Path 😥', function () {
+      it('should return 500 status code if a db exception happens', async function () {
+        const app = await getApp({
+          override: [
+            { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+            { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
+            { token: SERVICES.METADATA_REPOSITORY, provider: { useValue: repositoryMock } },
+          ],
+          useChild: true,
+        });
+        requestSender = new MetadataRequestSender(app);
+        repositoryMock.createQueryBuilder.mockReturnValue(new Error());
+
+        const response = await requestSender.find({});
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.body).toHaveProperty('message', 'Problem with the DB');
