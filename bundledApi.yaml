@@ -159,7 +159,9 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/metadata'
+            type: array
+            items:
+              $ref: '#/components/schemas/metadata'
     created:
       description: Created
       content:

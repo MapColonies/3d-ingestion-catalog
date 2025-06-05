@@ -162,7 +162,9 @@ components:
       content:
         application/json:
           schema:
-            $ref: ./Schema/3dCatalog/3dMetadata.yaml#/components/schemas/metadata
+            type: array
+            items:
+              $ref: ./Schema/3dCatalog/3dMetadata.yaml#/components/schemas/metadata
     created:
       description: Created
       content:
