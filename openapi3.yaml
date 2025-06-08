@@ -3,7 +3,7 @@ security: []
 info:
   title: 3d ingestion catalog
   description: Service to create 3d ingestion catalog
-  version: 5.3.5
+  version: 5.4.0
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

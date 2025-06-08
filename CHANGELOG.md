@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.0](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.3.5...v5.4.0) (2025-06-08)
+
+
+### Features
+
+* add find records ([#66](https://github.com/MapColonies/3d-ingestion-catalog/issues/66)) ([99709bc](https://github.com/MapColonies/3d-ingestion-catalog/commit/99709bca747a86c541f4bca021cd62658f6e23c5))
+
 ### [5.3.5](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.3.3...v5.3.5) (2025-04-06)
 
 
