@@ -8,6 +8,10 @@ The Catalog service is responsible for managing and providing metadata for model
 ## Run Migrations
 Run migrations before you start the app
 
+## Migrations Development
+* Update metadata file or change DB details (fakeDB for example)
+* npm run migration:create
+
 ### Shell
 Run the following command:
 
