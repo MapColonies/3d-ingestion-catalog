@@ -100,7 +100,7 @@ describe('MetadataController', function () {
         delete response.body[0]?.footprint;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         delete createResponse.body?.footprint;
-        
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         delete response.body[0]?.anyText;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -385,7 +385,7 @@ describe('MetadataController', function () {
         const payload = createPayload();
         const response = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
-        
+
         payload.id = createUuid();
         const newResponse = await requestSender.createRecord(payload);
         expect(newResponse.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
