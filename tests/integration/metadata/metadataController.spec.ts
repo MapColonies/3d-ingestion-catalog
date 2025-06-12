@@ -1,4 +1,5 @@
 import jsLogger from '@map-colonies/js-logger';
+import { faker } from '@faker-js/faker';
 import { trace } from '@opentelemetry/api';
 import httpStatusCodes from 'http-status-codes';
 import { register } from 'prom-client';
@@ -28,6 +29,9 @@ describe('MetadataController', function () {
 
   afterEach(() => {
     register.clear();
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('GET /metadata', function () {
@@ -96,9 +100,20 @@ describe('MetadataController', function () {
         expect(response.body).toHaveLength(1);
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        delete createResponse.body?.footprint;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         delete response.body[0]?.footprint;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete createResponse.body?.footprint;
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete response.body[0]?.anyText;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete createResponse.body?.anyText;
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete response.body[0]?.anyTextTsvector;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete createResponse.body?.anyTextTsvector;
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(createResponse.body).toEqual(response.body[0]);
       });
@@ -258,6 +273,7 @@ describe('MetadataController', function () {
         const oldBody = response.body as Metadata;
         payload.productId = oldBody.productId;
         payload.id = createUuid();
+        payload.productName = faker.word.sample();
         const newResponse = await requestSender.createRecord(payload);
         expect(response.status).toBe(httpStatusCodes.CREATED);
         const body = newResponse.body as Metadata;
@@ -366,6 +382,16 @@ describe('MetadataController', function () {
 
         expect(response.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.body).toHaveProperty('message', 'Problem with the DB');
+      });
+
+      it('if productName already exists, should return 500 status code', async function () {
+        const payload = createPayload();
+        const response = await requestSender.createRecord(payload);
+        expect(response.status).toBe(httpStatusCodes.CREATED);
+
+        payload.id = createUuid();
+        const newResponse = await requestSender.createRecord(payload);
+        expect(newResponse.status).toBe(httpStatusCodes.INTERNAL_SERVER_ERROR);
       });
     });
   });
