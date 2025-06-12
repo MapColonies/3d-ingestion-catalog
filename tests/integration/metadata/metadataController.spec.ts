@@ -29,6 +29,9 @@ describe('MetadataController', function () {
 
   afterEach(() => {
     register.clear();
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('GET /metadata', function () {
