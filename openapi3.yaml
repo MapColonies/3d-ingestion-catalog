@@ -326,6 +326,7 @@ components:
           enum:
             - UNPUBLISHED
             - PUBLISHED
+            - BEING_DELETED
           description: The status of the model
       additionalProperties: false
     error:
