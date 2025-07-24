@@ -1,6 +1,6 @@
 {
   "name": "3d-ingestion-catalog",
-  "version": "5.4.1",
+  "version": "5.5.0",
   "description": "A restful API for saving and querying 3d metadata",
   "main": "./src/index.ts",
   "scripts": {
