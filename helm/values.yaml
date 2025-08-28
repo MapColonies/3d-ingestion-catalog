@@ -28,19 +28,19 @@ global:
       keyFileName: ''
 
 cloudProvider:
-    dockerRegistryUrl:
-    flavor:
-    imagePullSecretName:
+  dockerRegistryUrl:
+  flavor:
+  imagePullSecretName:
 
 imagePullPolicy:
 
 mcLabelsAndAnnotations:
-    component: backend
-    partOf: ingestion
-    owner: 3d
-    gisDomain: 3d
-    prometheus:
-      enabled: true
+  component: backend
+  partOf: ingestion
+  owner: 3d
+  gisDomain: 3d
+  prometheus:
+    enabled: true
 
 nodePort: 30030
 replicaCount: 1
