@@ -1,6 +1,6 @@
 global:
   cloudProvider:
-    dockerRegistryUrl:
+    dockerRegistryUrl: test
     flavor: openshift
     imagePullSecretName:
   imagePullPolicy: IfNotPresent
