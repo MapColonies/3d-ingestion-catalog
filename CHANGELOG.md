@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.5.1](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.5.0...v5.5.1) (2025-09-01)
+
+
+### Helm Changes
+
+* add mc labels and annotations package (MAPCO-8035) ([#71](https://github.com/MapColonies/3d-ingestion-catalog/issues/71)) ([5de621a](https://github.com/MapColonies/3d-ingestion-catalog/commit/5de621ae59afef96ab6ee90f81d958b88dcca102))
+
 ## [5.5.0](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.4.1...v5.5.0) (2025-07-24)
 
 
