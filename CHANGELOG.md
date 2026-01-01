@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.5.2](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.5.1...v5.5.2) (2026-01-01)
+
+
+### Dependency Updates
+
+* remove tag value from values (MAPCO-9268) ([#74](https://github.com/MapColonies/3d-ingestion-catalog/issues/74)) ([74163f5](https://github.com/MapColonies/3d-ingestion-catalog/commit/74163f5b1c3167096ee20c7f0676123f630f1f40))
+
 ## [5.5.1](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.5.0...v5.5.1) (2025-09-01)
 
 
