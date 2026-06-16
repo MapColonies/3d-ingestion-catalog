@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "typeorm": "ts-node ./node_modules/typeorm/cli.js",
-    "migration:create": "npm run typeorm migration:generate -- -n 16_6_26",
+    "migration:create": "npm run typeorm migration:generate -- -n v2ProfileFinal",
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert",
     "schema:sync": "npm run typeorm schema:sync",
