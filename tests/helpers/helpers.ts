@@ -81,7 +81,8 @@ export const createPayload = (): IPayload => {
     productId: undefined,
     type: RecordType.RECORD_3D,
     productName: faker.word.sample(),
-    productType: ProductType.PHOTO_REALISTIC_3D,
+    productType: ProductType.PHOTO_REALISTIC,
+    productSubType: faker.word.sample(),
     description: faker.word.words(),
     creationDate: faker.date.past(),
     sourceDateStart: sourceDateStart,
@@ -124,7 +125,7 @@ export const createMetadata = (): Metadata => {
   const metadata: Metadata = {
     type: RecordType.RECORD_3D,
     productName: faker.word.sample(),
-    productType: ProductType.PHOTO_REALISTIC_3D,
+    productType: ProductType.PHOTO_REALISTIC,
     description: faker.word.words(),
     creationDate: faker.date.past(),
     sourceDateStart: sourceDateStart,
