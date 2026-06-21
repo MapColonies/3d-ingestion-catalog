@@ -10,7 +10,12 @@ import { IFindRecordsPayload, IUpdatePayload, IUpdateStatus } from '../../../src
 import { IPayload } from '../../../src/common/types';
 import { repositoryMock } from '../../helpers/mockCreators';
 import { getApp } from '../../../src/app';
+import { ConnectionManager } from '../../../src/DAL/connectionManager';
 import { MetadataRequestSender } from './helpers/requestSender';
+
+async function clearRecords(): Promise<void> {
+  await ConnectionManager.getInstance().getConnection().query('TRUNCATE TABLE records RESTART IDENTITY CASCADE');
+}
 
 describe('MetadataController', function () {
   let requestSender: MetadataRequestSender;
@@ -35,6 +40,10 @@ describe('MetadataController', function () {
   });
 
   describe('GET /metadata', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('should return 204 if there are no metadata records', async function () {
         const response = await requestSender.getAll();
@@ -82,6 +91,10 @@ describe('MetadataController', function () {
   });
 
   describe('POST /metadata/find', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('should return 200 status code and empty array if there are no metadata records', async function () {
         const payload = createPayload();
@@ -159,6 +172,10 @@ describe('MetadataController', function () {
   });
 
   describe('GET /metadata/{identifier}', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('should return 200 status code and the metadata record', async function () {
         const payload = createPayload();
@@ -207,6 +224,10 @@ describe('MetadataController', function () {
   });
 
   describe('GET /metadata/lastVersion/{identifier}', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('should return 0 if productID does not exist in DB', async function () {
         const productID = createUuid();
@@ -252,6 +273,10 @@ describe('MetadataController', function () {
   });
 
   describe('POST /metadata', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('if productId not exists, should return 201 status code and the added metadata record when productVersion = 1', async function () {
         const payload = createPayload();
@@ -397,6 +422,10 @@ describe('MetadataController', function () {
   });
 
   describe('PATCH /metadata/{identifier}', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('should return 200 status code and the updated metadata record', async function () {
         const payload = createPayload();
@@ -523,6 +552,10 @@ describe('MetadataController', function () {
   });
 
   describe('DELETE /metadata/{identifier}', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('should return 204 status code if metadata record to be deleted was not in the database', async function () {
         const response = await requestSender.deleteRecord(createUuid());
@@ -571,6 +604,10 @@ describe('MetadataController', function () {
   });
 
   describe('PATCH /metadata/status/{identifier}', function () {
+    beforeEach(async function () {
+      await clearRecords();
+    });
+
     describe('Happy Path 🙂', function () {
       it('should return 200 status code and the updated status record', async function () {
         const payload: IPayload = createPayload();

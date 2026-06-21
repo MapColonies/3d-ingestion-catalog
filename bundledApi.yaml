@@ -336,12 +336,16 @@ components:
     productType:
       type: string
       enum:
-        - 3DPhotorealistic
+        - 3DPhotoRealistic
         - 3DPhotoRealisticBest
         - 3DSemantic
         - 3DSemanticMesh
         - 3DPointCloud
       description: Type of 3D product
+    productSubType:
+      type: string
+      nullable: true
+      description: Sub-Type of 3D product
     Point3D:
       type: array
       minItems: 2
@@ -618,9 +622,7 @@ components:
         productType:
           $ref: '#/components/schemas/productType'
         productSubType:
-          type: string
-          nullable: true
-          description: Sub-Type of 3D product
+          $ref: '#/components/schemas/productSubType'
         description:
           type: string
           maxLength: 500
@@ -810,9 +812,7 @@ components:
           maxLength: 120
           description: Name of product
         productSubType:
-          type: string
-          nullable: true
-          description: Product sub type
+          $ref: '#/components/schemas/productSubType'
         description:
           type: string
           nullable: true
