@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.6.0](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.5.2...v5.6.0) (2026-06-22)
+
+
+### Features
+
+* added product sub type (MAPCO-10803) ([#76](https://github.com/MapColonies/3d-ingestion-catalog/issues/76)) ([11adc3d](https://github.com/MapColonies/3d-ingestion-catalog/commit/11adc3d9995c6879ed1d1153be02db00d2e9c99d))
+
+
+### Helm Changes
+
+* upgrade to the latest mc-labels (MAPCO-7126) ([#77](https://github.com/MapColonies/3d-ingestion-catalog/issues/77)) ([6308b69](https://github.com/MapColonies/3d-ingestion-catalog/commit/6308b69d3869e775aa5c602d3c33fc415ca5fbfd))
+
 ## [5.5.2](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.5.1...v5.5.2) (2026-01-01)
 
 
