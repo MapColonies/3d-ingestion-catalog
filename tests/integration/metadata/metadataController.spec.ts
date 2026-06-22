@@ -10,7 +10,12 @@ import { IFindRecordsPayload, IUpdatePayload, IUpdateStatus } from '../../../src
 import { IPayload } from '../../../src/common/types';
 import { repositoryMock } from '../../helpers/mockCreators';
 import { getApp } from '../../../src/app';
+import { ConnectionManager } from '../../../src/DAL/connectionManager';
 import { MetadataRequestSender } from './helpers/requestSender';
+
+async function clearRecords(): Promise<void> {
+  await ConnectionManager.getInstance().getConnection().query('TRUNCATE TABLE records RESTART IDENTITY CASCADE');
+}
 
 describe('MetadataController', function () {
   let requestSender: MetadataRequestSender;
@@ -25,6 +30,8 @@ describe('MetadataController', function () {
     });
     register.clear();
     requestSender = new MetadataRequestSender(app);
+
+    await clearRecords();
   });
 
   afterEach(() => {
