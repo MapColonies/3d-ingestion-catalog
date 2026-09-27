@@ -20,7 +20,7 @@ export interface OpenApiConfig {
 
 export interface DbConfig extends PostgresConnectionOptions {
   enableSslAuth: boolean;
-  sslPaths: { ca: string; cert: string; key: string };
+  sslPaths: { ca?: string; cert: string; key: string };
 }
 
 export interface MetadataParams {

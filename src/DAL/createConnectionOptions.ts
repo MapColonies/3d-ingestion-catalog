@@ -8,7 +8,11 @@ export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions =
   const { enableSslAuth, sslPaths, ...connectionOptions } = dbConfig;
   if (enableSslAuth) {
     connectionOptions.password = undefined;
-    connectionOptions.ssl = { key: readFileSync(sslPaths.key), cert: readFileSync(sslPaths.cert), ca: readFileSync(sslPaths.ca) };
+    connectionOptions.ssl = {
+      key: readFileSync(sslPaths.key),
+      cert: readFileSync(sslPaths.cert),
+      ...(sslPaths.ca !== undefined && sslPaths.ca !== '' ? { ca: readFileSync(sslPaths.ca) } : {}),
+    };
   }
   return { entities: ENTITIES_DIRS, ...connectionOptions };
 };
