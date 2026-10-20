@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.6.1](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.6.0...v5.6.1) (2026-10-20)
+
+
+### Code Refactoring
+
+* support certificate optional (MAPCO-10935) ([#79](https://github.com/MapColonies/3d-ingestion-catalog/issues/79)) ([3102928](https://github.com/MapColonies/3d-ingestion-catalog/commit/31029289049899e0b7bfd64cb65e64f8667a2822))
+
 ## [5.6.0](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.5.2...v5.6.0) (2026-06-22)
 
 
