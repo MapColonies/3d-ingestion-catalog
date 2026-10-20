@@ -11,7 +11,7 @@ export const createConnectionOptions = (dbConfig: DbConfig): ConnectionOptions =
     connectionOptions.ssl = {
       key: readFileSync(sslPaths.key),
       cert: readFileSync(sslPaths.cert),
-      ...(sslPaths.ca !== undefined && sslPaths.ca !== '' ? { ca: readFileSync(sslPaths.ca) } : {}),
+      ...(sslPaths.ca !== undefined && sslPaths.ca !== '' ? { ca: readFileSync(sslPaths.ca) } : { rejectUnauthorized: false }),
     };
   }
   return { entities: ENTITIES_DIRS, ...connectionOptions };
