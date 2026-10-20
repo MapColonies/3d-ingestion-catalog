@@ -2,8 +2,8 @@ apiVersion: v2
 name: catalog
 description: A Helm chart for catalog (CRUD) service
 type: application
-version: 5.6.0
-appVersion: 5.6.0
+version: 5.6.1
+appVersion: 5.6.1
 dependencies:
   - name: mclabels
     version: 1.0.1
