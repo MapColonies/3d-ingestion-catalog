@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.6.2](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.6.1...v5.6.2) (2026-11-22)
+
+
+### Helm Changes
+
+* add mclabels to pod template and set cpu limit to 4x request (MAPCO-11865, MAPCO-11866) ([#81](https://github.com/MapColonies/3d-ingestion-catalog/issues/81)) ([12b90fc](https://github.com/MapColonies/3d-ingestion-catalog/commit/12b90fc22cd01abde677657c3cf01009b105cbb7))
+
 ## [5.6.1](https://github.com/MapColonies/3d-ingestion-catalog/compare/v5.6.0...v5.6.1) (2026-10-20)
 
 
